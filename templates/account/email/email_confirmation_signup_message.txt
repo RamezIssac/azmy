@@ -1,0 +1,11 @@
+Hello,
+
+Thank you for signing up for Bau Match!
+
+To activate your account, please verify your email address by clicking the link below:
+
+{{ activate_url }}
+
+If you did not sign up, you can safely ignore this email.
+
+— The Bau Match Team

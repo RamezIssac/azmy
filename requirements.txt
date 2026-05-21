@@ -1,0 +1,12 @@
+asgiref==3.11.1
+cffi==2.0.0
+cryptography==48.0.0
+django==6.0.5
+django-allauth==65.17.0
+django-jazzy-tabler==0.1.1
+fido2==2.2.0
+psycopg2-binary==2.9.12
+pycparser==3.0
+python-dotenv==1.2.2
+qrcode==8.2
+sqlparse==0.5.5
