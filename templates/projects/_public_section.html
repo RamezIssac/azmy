@@ -1,0 +1,28 @@
+<div class="mb-2">
+  <div class="section-header rounded px-2 py-1 fw-bold small">
+    <span class="mono">{{ section.number }}</span> {{ section.title }}
+  </div>
+  <table class="table table-sm mb-1">
+    <tbody>
+      {% for item in section.items %}
+      <tr>
+        <td class="mono small text-nowrap" style="width: 8rem;">{{ item.oz }}</td>
+        <td>
+          <div class="small fw-bold">{{ item.short_text }}</div>
+          <details><summary class="small text-muted">Langtext</summary>
+            <div class="long-text">{{ item.long_text|linebreaksbr }}</div>
+          </details>
+        </td>
+        <td class="text-end text-nowrap small" style="width: 8rem;">
+          {{ item.menge|floatformat:"-2" }} {{ item.einheit }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="ms-3">
+    {% for child in section.sections %}
+      {% include "projects/_public_section.html" with section=child %}
+    {% endfor %}
+  </div>
+</div>

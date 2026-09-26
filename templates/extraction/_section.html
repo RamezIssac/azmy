@@ -1,0 +1,14 @@
+<div class="mb-2">
+  <div class="section-header rounded px-2 py-1 fw-bold small">
+    <span class="mono">{{ section.number }}</span> {{ section.title }}
+    <span class="text-muted fw-normal">({{ section.get_kind_display }})</span>
+  </div>
+  {% for item in section.items.all %}
+    {% include "extraction/_item_row.html" with item=item %}
+  {% endfor %}
+  <div class="ms-3">
+    {% for child in section.children.all %}
+      {% include "extraction/_section.html" with section=child %}
+    {% endfor %}
+  </div>
+</div>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}azmy — bau_match{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    body { background: #f5f6f8; }
+    .confidence-low { color: #b91c1c; font-weight: 600; }
+    .item-row.reviewed { opacity: .65; }
+    .item-row .long-text { white-space: pre-wrap; font-size: .85rem; color: #555; }
+    .section-header { background: #e9edf2; }
+    .mono { font-family: ui-monospace, monospace; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">azmy <span class="text-muted">bau_match</span></a>
+    {% if user.is_authenticated %}
+    <div class="d-flex text-light align-items-center gap-3">
+      <small>{{ user.email }}</small>
+      <a class="btn btn-sm btn-outline-light" href="{% url 'admin:index' %}">Admin</a>
+      <a class="btn btn-sm btn-outline-light" href="{% url 'account_logout' %}">Logout</a>
+    </div>
+    {% endif %}
+  </div>
+</nav>
+<div class="container-fluid">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} py-2">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+  {% block content %}{% endblock %}
+</div>
+</body>
+</html>

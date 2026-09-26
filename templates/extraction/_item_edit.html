@@ -1,0 +1,18 @@
+<form class="card card-body py-2 px-2 mb-1 border-primary" id="item-{{ item.pk }}"
+      hx-post="{% url 'extraction:item_edit' item.pk %}" hx-target="#item-{{ item.pk }}" hx-swap="outerHTML"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <div class="small mono mb-1">{{ item.oz }}</div>
+  <input class="form-control form-control-sm mb-1" name="short_text" value="{{ item.short_text }}" placeholder="Kurztext">
+  <textarea class="form-control form-control-sm mb-1" name="long_text" rows="6" placeholder="Langtext">{{ item.long_text }}</textarea>
+  <div class="row g-1 mb-1">
+    <div class="col-3"><input class="form-control form-control-sm" name="menge" value="{{ item.menge|default:'' }}" placeholder="Menge"></div>
+    <div class="col-2"><input class="form-control form-control-sm" name="einheit" value="{{ item.einheit }}" placeholder="ME"></div>
+    <div class="col-3"><input class="form-control form-control-sm" name="unit_price" value="{{ item.unit_price|default:'' }}" placeholder="EP"></div>
+    <div class="col-2"><input class="form-control form-control-sm" name="din276_group" value="{{ item.din276_group }}" placeholder="KG"></div>
+    <div class="col-2 d-flex gap-1">
+      <button class="btn btn-sm btn-primary w-100">Speichern</button>
+      <button type="button" class="btn btn-sm btn-outline-secondary"
+              hx-get="{% url 'extraction:item_edit' item.pk %}?cancel=1" hx-target="#item-{{ item.pk }}" hx-swap="outerHTML">×</button>
+    </div>
+  </div>
+</form>

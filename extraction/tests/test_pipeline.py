@@ -1,0 +1,139 @@
+from pathlib import Path
+
+from django.contrib.auth import get_user_model
+from django.core.files import File
+from django.test import TestCase, override_settings
+
+from extraction.models import LV, LVItem
+from extraction.services.pipeline import extract_document
+from projects.models import Document, DocumentSet, Project
+
+FIXTURES = Path(__file__).parent / "fixtures"
+
+
+def make_document(user, filename, doc_type, run_judge=False) -> Document:
+    project = Project.objects.create(name="Testprojekt", created_by=user)
+    doc_set = DocumentSet.objects.create(project=project, uploaded_by=user)
+    with open(FIXTURES / filename, "rb") as f:
+        return Document.objects.create(
+            document_set=doc_set,
+            file=File(f, name=filename),
+            original_filename=filename,
+            doc_type=doc_type,
+            run_judge=run_judge,
+        )
+
+
+@override_settings(OPENROUTER_API_KEY="")  # deterministic: no LLM calls in tests
+class PipelineTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user(
+            email="staff@example.com", password="x", is_staff=True
+        )
+
+    def test_pdf_pipeline(self):
+        doc = make_document(self.user, "trockenbauarbeiten.pdf", "lv")
+        extract_document(doc)
+        doc.refresh_from_db()
+        self.assertEqual(doc.status, Document.Status.EXTRACTED)
+        self.assertEqual(doc.page_count, 90)
+        self.assertEqual(doc.lv.item_count, 178)
+        self.assertEqual(doc.extraction_report["section_count"], 12)
+        # provenance: every item carries page refs
+        for item in LVItem.objects.filter(section__lv=doc.lv):
+            self.assertIsNotNone(item.page_start)
+
+    def test_gaeb_import(self):
+        doc = make_document(self.user, "sample.x83", "gaeb")
+        extract_document(doc)
+        doc.refresh_from_db()
+        self.assertEqual(doc.status, Document.Status.EXTRACTED)
+        lv = doc.lv
+        self.assertEqual(lv.number, "11")
+        self.assertEqual(lv.gewerk, "Trockenbauarbeiten")
+        items = LVItem.objects.filter(section__lv=lv).order_by("ordering")
+        self.assertEqual(items.count(), 2)
+        first = items.first()
+        self.assertEqual(first.oz, "02.01.0010")
+        self.assertEqual(float(first.menge), 6900.0)
+        self.assertEqual(first.einheit, "m2")
+        self.assertEqual(first.source, LVItem.Source.GAEB)
+        # priced item keeps prices
+        second = items.last()
+        self.assertEqual(float(second.unit_price), 65.50)
+        self.assertEqual(float(second.total_price), 5240.00)
+        # section nesting preserved
+        untertitel = first.section
+        self.assertEqual(untertitel.kind, "untertitel")
+        self.assertEqual(untertitel.parent.kind, "titel")
+
+    def test_scan_goes_to_manual_queue(self):
+        doc = make_document(self.user, "scan_like.pdf", "lv")
+        extract_document(doc)
+        doc.refresh_from_db()
+        self.assertEqual(doc.status, Document.Status.MANUAL_QUEUE)
+        self.assertFalse(LV.objects.filter(document=doc).exists())
+
+
+@override_settings(OPENROUTER_API_KEY="")
+class PublishFlowTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user(
+            email="staff2@example.com", password="x", is_staff=True
+        )
+
+    def test_approve_publish_public_api(self):
+        doc = make_document(self.user, "sample.x83", "gaeb")
+        extract_document(doc)
+        project = doc.document_set.project
+
+        client = self.client
+        self.assertTrue(client.login(email="staff2@example.com", password="x"))
+
+        # publish requires an approved LV
+        resp = client.post(f"/projects/{project.slug}/publish/", follow=True)
+        project.refresh_from_db()
+        self.assertFalse(project.is_published)
+
+        resp = client.post(f"/extraction/documents/{doc.pk}/approve/", follow=True)
+        doc.refresh_from_db()
+        self.assertEqual(doc.status, Document.Status.APPROVED)
+
+        resp = client.post(f"/projects/{project.slug}/publish/", follow=True)
+        project.refresh_from_db()
+        self.assertTrue(project.is_published)
+
+        # review UI renders the extracted tree
+        resp = client.get(f"/extraction/documents/{doc.pk}/review/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "02.01.0010")
+
+        # public JSON API via token
+        resp = client.get(f"/api/v1/p/{project.public_token}/")
+        self.assertEqual(resp.status_code, 200)
+        payload = resp.json()
+        self.assertEqual(payload["name"], "Testprojekt")
+        lv = payload["lvs"][0]
+        self.assertEqual(lv["gewerk"], "Trockenbauarbeiten")
+        section = lv["sections"][0]["sections"][0]
+        self.assertEqual(section["items"][0]["oz"], "02.01.0010")
+
+        # public HTML
+        resp = client.get(f"/p/{project.public_token}/")
+        self.assertContains(resp, "Metallständerwand")
+
+        # unpublish closes the door
+        client.post(f"/projects/{project.slug}/unpublish/", follow=True)
+        self.assertEqual(client.get(f"/api/v1/p/{project.public_token}/").status_code, 404)
+
+    def test_staff_gating(self):
+        doc = make_document(self.user, "sample.x83", "gaeb")
+        # anonymous users get redirected away from staff views
+        resp = self.client.get("/")
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get(f"/documents/{doc.pk}/file/")
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get(f"/extraction/documents/{doc.pk}/review/")
+        self.assertEqual(resp.status_code, 302)

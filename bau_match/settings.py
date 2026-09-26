@@ -11,7 +11,11 @@ SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me-in-production")
 
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    if h.strip()
+]
 
 INSTALLED_APPS = [
     # jazzy-tabler must come before django.contrib.admin
@@ -26,9 +30,12 @@ INSTALLED_APPS = [
     # third-party
     "allauth",
     "allauth.account",
+    "django_rq",
     # local
     "accounts",
     "core",
+    "projects",
+    "extraction",
 ]
 
 MIDDLEWARE = [
@@ -60,17 +67,18 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "bau_match.wsgi.application"
+ASGI_APPLICATION = "bau_match.asgi.application"
 
-# Database — SQLite for dev, PostgreSQL for prod (set DB_NAME env var)
-if os.getenv("DB_NAME"):
+# Database — POSTGRES_* per rambo hosting contract; SQLite fallback for local dev
+if os.getenv("POSTGRES_DB"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("DB_NAME"),
-            "USER": os.getenv("DB_USER", ""),
-            "PASSWORD": os.getenv("DB_PASSWORD", ""),
-            "HOST": os.getenv("DB_HOST", "localhost"),
-            "PORT": os.getenv("DB_PORT", "5432"),
+            "NAME": os.getenv("POSTGRES_DB"),
+            "USER": os.getenv("POSTGRES_USER", ""),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
+            "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+            "PORT": os.getenv("POSTGRES_PORT", "5432"),
         }
     }
 else:
@@ -93,8 +101,26 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_URL = "/static/"
+STATIC_ROOT = os.getenv("STATIC_ROOT") or (BASE_DIR / "staticfiles")
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.getenv("MEDIA_ROOT") or (BASE_DIR / "media")
+
+# Private uploads (tender PDFs) — served through Django, never via the web server
+PRIVATE_ROOT = os.getenv("PRIVATE_ROOT") or (BASE_DIR / "private")
+
+# HTTPS behind Nginx (rambo hosting contract)
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{h}" for h in ALLOWED_HOSTS if h not in ("localhost", "127.0.0.1")
+] + [o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -110,7 +136,7 @@ SITE_ID = 1
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "optional")
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = os.getenv("ACCOUNT_HTTP_PROTOCOL", "http")
 
 LOGIN_REDIRECT_URL = "/"
@@ -125,4 +151,29 @@ EMAIL_PORT = int(os.getenv("EMAIL_PORT", "465"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "True") == "True"
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@bauMatch.com")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@azmy.raenterprises.de")
+
+# Redis / RQ (rambo host provides REDIS_URL; extraction falls back to sync in dev)
+REDIS_URL = os.getenv("REDIS_URL", "")
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_URL,
+        }
+    }
+    RQ_QUEUES = {"default": {"URL": REDIS_URL, "DEFAULT_TIMEOUT": 900}}
+else:
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+    RQ_QUEUES = {"default": {"URL": "redis://localhost:6379/0", "DEFAULT_TIMEOUT": 900}}
+
+RQ_ENABLED = bool(REDIS_URL) and os.getenv("RQ_ENABLED", "True") == "True"
+
+# OpenRouter — LLM extraction/structuring/judge (models assigned per task, see docs)
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+OPENROUTER_MODEL_METADATA = os.getenv("OPENROUTER_MODEL_METADATA", "google/gemini-2.5-flash")
+OPENROUTER_MODEL_STRUCTURE = os.getenv("OPENROUTER_MODEL_STRUCTURE", "google/gemini-2.5-flash")
+OPENROUTER_MODEL_JUDGE = os.getenv("OPENROUTER_MODEL_JUDGE", "anthropic/claude-sonnet-4.5")
+
+LOGIN_URL = "/accounts/login/"

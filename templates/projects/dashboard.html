@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Projekte — azmy{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Projekte</h1>
+  <a class="btn btn-primary" href="{% url 'projects:create' %}">+ Neues Projekt</a>
+</div>
+<div class="row g-3">
+  {% for row in rows %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">
+          <a href="{% url 'projects:detail' row.project.slug %}">{{ row.project.name }}</a>
+        </h5>
+        <p class="card-text small text-muted mb-1">{{ row.project.client_name }} — {{ row.project.address }}</p>
+        <p class="card-text small mb-2">
+          {{ row.docs|length }} Dokument(e) · {{ row.items }} Positionen
+          {% for d in row.docs %}
+            <span class="badge bg-secondary">{{ d.get_status_display }}</span>
+          {% endfor %}
+        </p>
+        {% if row.project.is_published %}
+          <span class="badge bg-success">veröffentlicht</span>
+          <a class="small" href="{{ row.project.get_public_url }}">öffentlicher Link</a>
+        {% else %}
+          <span class="badge bg-light text-dark">Entwurf</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12"><div class="alert alert-info">Noch keine Projekte. Lege das erste an und lade ein Leistungsverzeichnis hoch.</div></div>
+  {% endfor %}
+</div>
+{% endblock %}
