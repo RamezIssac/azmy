@@ -27,12 +27,13 @@ class SignUpVerifyLoginTest(TestCase):
         email_address.refresh_from_db()
         self.assertTrue(email_address.verified)
 
-        # 4. Sign in and land on the home page
+        # 4. Sign in and land on the home page (LOGIN_REDIRECT_URL = "/")
         response = self.client.post(
             reverse("account_login"),
             {"login": "user@example.com", "password": "Str0ng!Pass"},
         )
-        self.assertRedirects(response, reverse("coming_soon"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/")
 
     def test_email_verification_via_outbox_link(self):
         # 1. Sign up — triggers the verification email

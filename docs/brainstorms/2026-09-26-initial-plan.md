@@ -164,3 +164,18 @@ subreport, GC/developer tender pages. Status: **idea captured, phasing TBD** (li
 | Q11 | "Published" means | **Shareable read link + read-only JSON API from day one** (the API the Phase 2 MCP server will wrap) |
 | Q12 | Versioning/addenda | *Skipped → decided by default:* **store versions, defer diffing** |
 | Q13 | GC scanning/monitoring pipeline | **Post-v1** (idea captured in Session 2) |
+
+---
+
+## Session 4 — Build & deploy (same day, evening)
+
+Phase 1 built and deployed to production. Full details in `docs/deployment-plan.md`
+(acceptance checklist all green) and `proofs/`.
+
+- Golden-file parser: **178/178 positions, 0 warnings** on the 90-page Trockenbau LV
+  (pypdfium2 text layer; units incl. m²/m2/Stk/St/m³/h/Psch; multi-page items merged;
+  `* nur Einheitspreis *` rows handled; section-scoped position numbering).
+- LLM layer verified live: metadata (Bauherr/address/architect) + DIN 276 = 390 +
+  judge pass ("Alle 8 extrahierten Positionen sind korrekt").
+- Live: **https://azmy.raenterprises.de** (rasystem26), repo `git@github.com:RamezIssac/azmy.git`.
+- 21 tests. Deploy via rambo hosting branch worktree (`rambo-hosting/`).

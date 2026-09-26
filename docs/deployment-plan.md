@@ -52,10 +52,32 @@ you/CI: click "Deploy selected applications" in rambo  →  azmy.raenterprises.d
 5. **OpenRouter key** — available ✅ (stored in the `knowledge_consolidator` app's config;
    reuse it, put into rambo `extra_env` as `OPENROUTER_API_KEY`)
 
-## Acceptance criteria — "first stable run"
+## Acceptance criteria — "first stable run" — ✅ ALL GREEN (2026-09-26)
 
-1. `https://azmy.raenterprises.de` serves the staff login over valid TLS.
-2. Staff uploads `rockenbauarbeiten.pdf` → extraction runs via RQ → LV tree in review UI.
-3. Human approves → public read link + `GET /api/v1/projects/<id>/` returns the LV tree.
-4. GAEB X83 import accepts a sample file into the same tree.
-5. Redeploy (push → rambo deploy) is green end-to-end.
+1. ✅ `https://azmy.raenterprises.de` serves staff login over valid TLS.
+2. ✅ Staff uploads `trockenbauarbeiten.pdf` → extraction runs via RQ worker
+   (real Redis) → 178 positions / 12 sections in review UI.
+3. ✅ Approve → publish → public read link + `/api/v1/p/<token>/` returns the
+   full LV tree (verified: 178 items, DIN 276 KG 390, LLM-extracted metadata).
+4. ✅ GAEB X83 import verified on production (2 items, nested sections, prices).
+5. ✅ Redeploy (push → rambo deploy) green end-to-end, 4×.
+
+## Operational notes (learned 2026-09-26)
+
+- **rambo code lives on the `hosting` branch** of the rambo repo; ops run via a
+  worktree at `/home/ramez/work_own/rambo-hosting` with `db.sqlite3` and `.env`
+  symlinked to the main checkout. Deploys run from this machine (ansible in
+  `rambo/.venv`), scoped per app with `deploy_only`.
+- **GitHub deploy keys are per-repo and NOT reusable** — each app gets its own
+  DeployKey record (`initialize_application` pattern). azmy's key is named `azmy`;
+  repo URL `git@azmy:RamezIssac/azmy.git`.
+- **rasystem26 had `redis_bind = "redis_bind"` in the DB** (bad seed) — broke redis
+  and explains the other apps' `failed` status. Fixed to `127.0.0.1` on 2026-09-26.
+- rambo's `dotenv.j2` rewrites `.env` on every deploy and uWSGI reloads gracefully →
+  app must load `.env` with **override=True** (spec §2.2) — done.
+- daphne unit is provisioned per app unconditionally → keep `daphne` in
+  requirements even before websockets exist.
+- Prod staff user: `ramez@raenterprises.de` (initial password delivered in chat —
+  change it in admin; SMTP not configured yet so password-reset emails don't send).
+- Judge model (`anthropic/claude-sonnet-4.5`) via OpenRouter can return
+  fence-wrapped JSON — parser tolerates it (see `llm.parse_json_content`).
