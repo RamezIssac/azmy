@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 
 import httpx
 from django.conf import settings
@@ -15,6 +16,29 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 TIMEOUT = httpx.Timeout(90.0, connect=15.0)
+
+
+_FENCE_START = re.compile(r"^\s*```(?:json)?\s*")
+_FENCE_END = re.compile(r"\s*```\s*$")
+
+
+def parse_json_content(content: str) -> dict | None:
+    """Tolerant JSON parsing of LLM output: fences, prose padding, whitespace."""
+    text = (content or "").strip()
+    if not text:
+        return None
+    if text.startswith("```"):
+        text = _FENCE_END.sub("", _FENCE_START.sub("", text))
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        start, end = text.find("{"), text.rfind("}")
+        if start != -1 and end > start:
+            try:
+                return json.loads(text[start : end + 1])
+            except json.JSONDecodeError:
+                pass
+    return None
 
 
 def chat(model: str, messages: list[dict], json_mode: bool = True) -> dict | None:
@@ -37,7 +61,14 @@ def chat(model: str, messages: list[dict], json_mode: bool = True) -> dict | Non
         )
         resp.raise_for_status()
         content = resp.json()["choices"][0]["message"]["content"]
-        return json.loads(content) if json_mode else {"text": content}
+        if not json_mode:
+            return {"text": content}
+        parsed = parse_json_content(content)
+        if parsed is None:
+            logger.warning(
+                "LLM (%s) returned non-JSON content: %r", model, content[:200]
+            )
+        return parsed
     except Exception as exc:  # noqa: BLE001
         logger.warning("OpenRouter call failed (%s): %s", model, exc)
         return None
