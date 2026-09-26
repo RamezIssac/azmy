@@ -1,7 +1,12 @@
-# Phase 2 Design — Agent substrate + multi-document intelligence
+# Phase 2 Design — multi-document intelligence + web bidding
 
-Status: draft (2026-09-27). Builds on `phase-1-design.md` and the original brainstorm
-(Session 1, Layer B). Phase 1 delivered: LV extraction, review, publish, read API.
+Status: **scope locked** (2026-09-27). Builds on `phase-1-design.md`.
+
+**Scope decision (Ramez, 2026-09-27): Phase 2 = 2A + 2C (web only).**
+The agent substrate (2B: MCP server, API keys, webhooks) moves to Phase 3.
+Bids in Phase 2 are submitted through the provider **web portal** (allauth accounts),
+not by agents — but the bid schema is designed agent-compatible from day one, so
+`submit_bid` later is a thin wrapper.
 
 ## What Phase 2 is (recap + learned)
 
@@ -57,10 +62,14 @@ So Phase 2 = **2A multi-document intelligence → 2B agent substrate → 2C stru
 Drawing takeoff (measurement off plans), negotiations/award workflow, multi-tenancy,
 provider reputation, GC portal monitoring, payments.
 
-## Order of attack (proposal)
+## Order of attack
 
 1. Vision OCR (unblocks the 50% of real docs that are scans)
-2. Provider + API keys + expanded read API
-3. MCP server (read tools first: search/get_boq/get_item/ask_question)
-4. Bid schema + submission + leveling
-5. RAG depth (better chunking, hybrid search) as usage data arrives
+2. Provider accounts (allauth) + provider profile (trade codes, regions)
+3. Bid schema + provider bid form (web) + leveling view for staff
+4. RAG index over all docs (powers staff Q&A now, `ask_question` in Phase 3)
+
+## Deferred to Phase 3
+
+MCP server, provider API keys + scopes, webhooks/event feed, provider reputation,
+GC portal monitoring.

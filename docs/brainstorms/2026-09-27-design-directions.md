@@ -74,3 +74,15 @@ A's hazard-stripe only for the approve/publish gate and the Bauschild project ca
 
 **Decision needed:** pick a direction (or the B+C+A mix) — then it becomes a
 `docs/design-system.md` and gets implemented.
+
+---
+
+## DECISION (Ramez, 2026-09-27)
+
+Direction chosen: **B + C** — "professional, but new-age with agents and AI".
+A survives only as faint blueprint texture on hero surfaces.
+
+Visual proposal rendered as a lavish artifact (`.lavish/design-direction.html`):
+full token set + mockups of dashboard / review workbench / public tender page +
+4 open tuning questions (accent color, staff theme default, agent-panel prominence,
+wordmark). Implementation into Django templates follows the answers.

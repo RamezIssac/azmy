@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>azmy — visual design direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============ azmy design system — proposal v1 ============ */
+:root {
+  --paper: #fafaf9;
+  --surface: #ffffff;
+  --ink: #111827;
+  --ink-2: #4b5563;
+  --ink-3: #9ca3af;
+  --hairline: #e7e5e4;
+  --accent: #4f46e5;          /* indigo — primary */
+  --accent-soft: #eef2ff;
+  --agent-from: #4f46e5;      /* agent gradient */
+  --agent-to: #06b6d4;
+  --agent-glow: rgba(6, 182, 212, .35);
+  --ok: #059669;
+  --warn: #d97706;
+  --bad: #dc2626;
+  --dark: #0b1220;            /* agent console */
+  --dark-2: #111a2e;
+  --dark-line: #1e2b45;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --sans: "Inter", system-ui, sans-serif;
+  --r-lg: 14px; --r-md: 10px; --r-sm: 7px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 var(--sans); }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+h1 { font-size: 1.9rem; letter-spacing: -.02em; margin: 0 0 .3rem; }
+h2 { font-size: 1.15rem; letter-spacing: -.01em; margin: 3.2rem 0 .4rem; }
+.sub { color: var(--ink-2); margin: 0; max-width: 70ch; }
+.kicker { font: 600 .72rem/1 var(--mono); text-transform: uppercase; letter-spacing: .14em; color: var(--accent); margin-bottom: .6rem; }
+.note { color: var(--ink-2); font-size: .86rem; }
+section { min-width: 0; }
+img, svg { max-width: 100%; }
+
+/* blueprint grid spice — only on hero surfaces */
+.blueprint {
+  background-image:
+    linear-gradient(rgba(79,70,229,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,70,229,.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ---- swatches & tokens ---- */
+.swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .7rem; margin-top: 1rem; }
+.sw { border: 1px solid var(--hairline); border-radius: var(--r-md); overflow: hidden; background: var(--surface); }
+.sw i { display: block; height: 56px; }
+.sw b { display: block; font: 600 .75rem var(--mono); padding: .45rem .6rem .1rem; }
+.sw span { display: block; font: .7rem var(--mono); color: var(--ink-3); padding: 0 .6rem .5rem; }
+.type-row { display: grid; grid-template-columns: 130px 1fr; gap: 1rem; align-items: baseline; padding: .55rem 0; border-bottom: 1px solid var(--hairline); }
+.type-row code { font: .72rem var(--mono); color: var(--ink-3); }
+
+/* ---- pills, buttons, chips ---- */
+.pill { display: inline-flex; align-items: center; gap: .4rem; font: 600 .72rem/1 var(--sans); padding: .42rem .7rem; border-radius: 999px; border: 1px solid transparent; white-space: nowrap; }
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill.zinc { background: #f4f4f5; color: #52525b; }
+.pill.amber { background: #fffbeb; color: var(--warn); }
+.pill.blue { background: var(--accent-soft); color: var(--accent); }
+.pill.green { background: #ecfdf5; color: var(--ok); }
+.pill.red { background: #fef2f2; color: var(--bad); }
+.pill.agent { background: linear-gradient(90deg, var(--agent-from), var(--agent-to)); color: #fff; }
+.pill.agent .dot { animation: pulse 1.6s infinite; background: #fff; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 var(--agent-glow);} 55% { box-shadow: 0 0 0 7px transparent;} }
+.btn { font: 600 .82rem var(--sans); border-radius: var(--r-sm); padding: .55rem 1rem; border: 1px solid var(--hairline); background: var(--surface); color: var(--ink); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.hazard { background: repeating-linear-gradient(-45deg, #111827 0 8px, #1f2937 8px 16px); color: #fbbf24; border-color: #111827; font-family: var(--mono); letter-spacing: .05em; }
+.mono { font-family: var(--mono); font-feature-settings: "tnum"; }
+
+/* ---- mock frames ---- */
+.frame { border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface); overflow: hidden; box-shadow: 0 18px 50px -30px rgba(17,24,39,.35); margin-top: 1.2rem; }
+.frame .chrome { display: flex; gap: 6px; padding: .6rem .9rem; border-bottom: 1px solid var(--hairline); background: #fbfbfa; }
+.chrome i { width: 10px; height: 10px; border-radius: 50%; background: #e5e7eb; }
+.frame-title { font: 600 .72rem var(--mono); color: var(--ink-3); margin-left: .5rem; }
+.screen { display: grid; min-height: 380px; }
+.two-col { grid-template-columns: 1fr 340px; }
+@media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+/* dashboard */
+.dash-main { padding: 1.1rem 1.2rem; }
+.proj-card { border: 1px solid var(--hairline); border-radius: var(--r-md); padding: .9rem 1rem; margin-bottom: .8rem; background: var(--surface); }
+.proj-card h3 { margin: 0 0 .15rem; font-size: .95rem; }
+.proj-card .meta { font-size: .76rem; color: var(--ink-3); margin-bottom: .6rem; }
+.pipeline { display: flex; gap: 4px; align-items: center; }
+.pipeline .step { flex: 1; height: 5px; border-radius: 3px; background: #e5e7eb; position: relative; }
+.pipeline .step.done { background: var(--ok); }
+.pipeline .step.now { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.pipeline + .plabels { display: flex; justify-content: space-between; font: .62rem var(--mono); color: var(--ink-3); margin-top: .3rem; }
+/* agent console panel */
+.console { background: var(--dark); color: #cbd5e1; padding: 1rem 1.1rem; display: flex; flex-direction: column; }
+.console h4 { margin: 0 0 .8rem; font: 600 .72rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: #7dd3fc; display: flex; align-items: center; gap: .5rem; }
+.console h4 .dot { width: 8px; height: 8px; border-radius: 50%; background: #22d3ee; animation: pulse 1.6s infinite; }
+.feed { font: .72rem/1.9 var(--mono); }
+.feed .row { display: flex; gap: .55rem; border-bottom: 1px solid var(--dark-line); padding: .3rem 0; }
+.feed .t { color: #475569; flex: 0 0 auto; }
+.feed .a { color: #67e8f9; }
+.feed .x { color: #e2e8f0; overflow-wrap: anywhere; }
+.feed .ok { color: #34d399; }
+.mcp-card { margin-top: auto; background: var(--dark-2); border: 1px solid var(--dark-line); border-radius: var(--r-sm); padding: .6rem .7rem; font: .68rem/1.7 var(--mono); }
+.mcp-card b { color: #7dd3fc; }
+.mcp-card .g { background: linear-gradient(90deg, var(--agent-from), var(--agent-to)); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 700; }
+
+/* review workbench */
+.wb { grid-template-columns: 1fr 1.05fr .95fr; }
+@media (max-width: 1000px) { .wb { grid-template-columns: 1fr; } }
+.wb > div { min-width: 0; }
+.wb-head { grid-column: 1 / -1; display: flex; align-items: center; gap: 1rem; padding: .7rem 1rem; border-bottom: 1px solid var(--hairline); background: #fbfbfa; }
+.progress { flex: 1; max-width: 260px; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+.progress i { display: block; height: 100%; width: 80%; background: linear-gradient(90deg, var(--accent), var(--agent-to)); border-radius: 3px; }
+.pdf-pane { border-right: 1px solid var(--hairline); background: #525659; padding: 1rem; }
+.pdf-page { background: #fff; border-radius: 3px; box-shadow: 0 6px 24px rgba(0,0,0,.35); padding: .9rem; font: .6rem/1.7 var(--mono); color: #334155; min-height: 420px; position: relative; }
+.pdf-page .hl { position: absolute; left: 8%; right: 8%; top: 38%; height: 15%; border: 2px solid var(--accent); background: rgba(79,70,229,.12); border-radius: 3px; }
+.hl-tag { position: absolute; top: -1.5rem; left: -2px; background: var(--accent); color: #fff; font: 600 .6rem var(--mono); padding: .15rem .4rem; border-radius: 3px; }
+.tree-pane { border-right: 1px solid var(--hairline); padding: .8rem; max-height: 480px; overflow: auto; }
+.sec { font: 600 .72rem var(--sans); background: #f4f4f5; border-radius: var(--r-sm); padding: .35rem .55rem; margin: .5rem 0 .3rem; }
+.item { display: flex; gap: .5rem; align-items: baseline; padding: .35rem .5rem; border-radius: var(--r-sm); font-size: .76rem; }
+.item.sel { background: var(--accent-soft); outline: 1px solid #c7d2fe; }
+.item .oz { font: 600 .68rem var(--mono); color: var(--accent); white-space: nowrap; }
+.item .qty { margin-left: auto; font: .68rem var(--mono); color: var(--ink-2); white-space: nowrap; }
+.detail-pane { padding: .9rem; font-size: .8rem; }
+.detail-pane h5 { margin: 0 0 .5rem; font-size: .85rem; }
+.field { margin-bottom: .55rem; }
+.field label { display: block; font: 600 .64rem var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin-bottom: .15rem; }
+.field .val { border: 1px solid var(--hairline); border-radius: var(--r-sm); padding: .4rem .55rem; background: #fdfdfc; }
+.judge { margin-top: .8rem; border: 1px solid #a7f3d0; background: #ecfdf5; border-radius: var(--r-sm); padding: .55rem .7rem; font-size: .74rem; color: #065f46; }
+
+/* public tender page */
+.pub { padding: 1.4rem 1.6rem; }
+.fact-chips { display: flex; flex-wrap: wrap; gap: .45rem; margin: .6rem 0 1rem; }
+.doc-row { display: flex; gap: .7rem; align-items: baseline; padding: .5rem 0; border-bottom: 1px solid var(--hairline); font-size: .8rem; }
+.doc-row .kind { font: 600 .64rem var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--accent); flex: 0 0 150px; }
+.doc-row .sum { color: var(--ink-2); }
+.agent-block { margin-top: 1.1rem; background: var(--dark); color: #cbd5e1; border-radius: var(--r-md); padding: .9rem 1rem; font: .72rem/1.8 var(--mono); position: relative; overflow: hidden; }
+.agent-block::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: linear-gradient(180deg, var(--agent-from), var(--agent-to)); }
+.agent-block .h { color: #7dd3fc; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; font-size: .66rem; margin-bottom: .4rem; }
+.agent-block code { color: #e2e8f0; }
+.agent-block .c { color: #475569; }
+
+/* comparison strip */
+.cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+@media (max-width: 800px) { .cmp { grid-template-columns: 1fr; } }
+.cmp .box { border: 1px solid var(--hairline); border-radius: var(--r-md); overflow: hidden; }
+.cmp .box > b { display: block; padding: .5rem .8rem; font-size: .75rem; border-bottom: 1px solid var(--hairline); background: #fbfbfa; }
+.old { font-family: system-ui; font-size: .72rem; padding: .8rem; background: #fff; }
+.old .btn-bs { display: inline-block; background: #0d6efd; color: #fff; border-radius: 4px; padding: .2rem .55rem; font-size: .7rem; }
+.old table { width: 100%; border-collapse: collapse; margin-top: .5rem; }
+.old td, .old th { border: 1px solid #dee2e6; padding: .25rem .4rem; text-align: left; }
+.old th { background: #e9ecef; }
+
+/* input section */
+.q { border: 1px solid var(--hairline); border-radius: var(--r-md); background: var(--surface); padding: 1rem 1.2rem; margin-top: 1rem; }
+.q h3 { margin: 0 0 .2rem; font-size: .95rem; }
+.q form { margin-top: .7rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.opt { display: inline-flex; align-items: center; gap: .5rem; border: 1px solid var(--hairline); border-radius: var(--r-sm); padding: .5rem .8rem; font-size: .82rem; cursor: pointer; }
+.opt:has(:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.q button[type=submit] { margin-left: auto; }
+.queued-hint { font-size: .72rem; color: var(--ok); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="kicker">azmy · bau_match — design decision</div>
+<h1>Professional workbench, agent-native soul</h1>
+<p class="sub">Direction: <b>B</b> (Linear-grade clarity) as the base, <b>C</b> (agent-console accents)
+as the identity, <b>A</b> (blueprint grid) as a faint texture on hero surfaces only.
+Below: the design tokens and the three core screens rendered in the target look.
+Annotate anything, or answer the four questions at the bottom.</p>
+
+<h2>Tokens</h2>
+<div class="swatches">
+  <div class="sw"><i style="background:#fafaf9"></i><b>paper</b><span>#FAFAF9</span></div>
+  <div class="sw"><i style="background:#fff;border-bottom:1px solid #eee"></i><b>surface</b><span>#FFFFFF</span></div>
+  <div class="sw"><i style="background:#111827"></i><b>ink</b><span>#111827</span></div>
+  <div class="sw"><i style="background:#4f46e5"></i><b>accent · indigo</b><span>#4F46E5</span></div>
+  <div class="sw"><i style="background:linear-gradient(90deg,#4f46e5,#06b6d4)"></i><b>agent gradient</b><span>indigo → cyan</span></div>
+  <div class="sw"><i style="background:#0b1220"></i><b>console dark</b><span>#0B1220</span></div>
+  <div class="sw"><i style="background:#059669"></i><b>ok / published</b><span>#059669</span></div>
+  <div class="sw"><i style="background:#d97706"></i><b>processing</b><span>#D97706</span></div>
+  <div class="sw"><i style="background:#dc2626"></i><b>manual queue</b><span>#DC2626</span></div>
+</div>
+<div style="margin-top:1.4rem">
+  <div class="type-row"><code>Inter 400–800</code><span>UI text, headings — <b>tight letter-spacing on headings</b></span></div>
+  <div class="type-row"><code>JetBrains Mono</code><span class="mono">OZ 02.01.0290 · 6.900 m² · EP 65,50 — tabular numerals everywhere</span></div>
+  <div class="type-row"><code>status pills</code><span>
+    <span class="pill zinc"><i class="dot"></i>uploaded</span>
+    <span class="pill amber"><i class="dot"></i>processing</span>
+    <span class="pill blue"><i class="dot"></i>extracted</span>
+    <span class="pill green"><i class="dot"></i>published</span>
+    <span class="pill red"><i class="dot"></i>manual queue</span>
+    <span class="pill agent"><i class="dot"></i>agent online</span>
+  </span></div>
+</div>
+
+<h2>Screen 1 — Staff dashboard <span class="note">(project pipeline at a glance; the agent console is always present)</span></h2>
+<div class="frame">
+  <div class="chrome"><i></i><i></i><i></i><span class="frame-title">azmy · dashboard</span></div>
+  <div class="screen two-col">
+    <div class="dash-main blueprint">
+      <div class="proj-card">
+        <h3>FMP6: Neubau von 6 MFH mit 160 Wohneinheiten</h3>
+        <div class="meta">Diamona &amp; Harnisch · Berlin-Friedrichshain · LV 11 Trockenbauarbeiten</div>
+        <div class="pipeline"><span class="step done"></span><span class="step done"></span><span class="step done"></span><span class="step done"></span></div>
+        <div class="plabels"><span>uploaded</span><span>extracted</span><span>reviewed</span><span>published</span></div>
+        <div style="margin-top:.5rem; display:flex; gap:.5rem; align-items:center">
+          <span class="pill green"><i class="dot"></i>published</span>
+          <span class="mono" style="font-size:.72rem; color:var(--ink-3)">178 Positionen · KG 390</span>
+          <span class="pill agent" style="margin-left:auto"><i class="dot"></i>3 agents queried</span>
+        </div>
+      </div>
+      <div class="proj-card">
+        <h3>Haus der Gesundheit — Interessenbekundung</h3>
+        <div class="meta">Bezirksamt Marzahn-Hellersdorf · 4 Dokumente</div>
+        <div class="pipeline"><span class="step done"></span><span class="step done"></span><span class="step now"></span><span class="step"></span></div>
+        <div class="plabels"><span>uploaded</span><span>extracted</span><span>reviewed</span><span>published</span></div>
+        <div style="margin-top:.5rem; display:flex; gap:.5rem; align-items:center">
+          <span class="pill amber"><i class="dot"></i>2 scans in manual queue</span>
+          <span class="mono" style="font-size:.72rem; color:var(--ink-3)">2 Dokumente verstanden</span>
+        </div>
+      </div>
+    </div>
+    <div class="console">
+      <h4><span class="dot"></span> Agent activity · live</h4>
+      <div class="feed">
+        <div class="row"><span class="t">12:04:11</span><span class="a">drywall-gmbh-bot</span><span class="x">get_boq(FMP6, gewerk=11)</span></div>
+        <div class="row"><span class="t">12:03:58</span><span class="a">bedia-agent</span><span class="x">ask_question(03.01.0290, "Sturzprofil inkl.?")</span></div>
+        <div class="row"><span class="t">12:03:31</span><span class="a">malerwerk-ki</span><span class="x">search_projects(trade=Trockenbau, plz=10*)</span></div>
+        <div class="row"><span class="t">12:02:47</span><span class="a">drywall-gmbh-bot</span><span class="x ok">submit_bid(178 items) → accepted</span></div>
+        <div class="row"><span class="t">12:01:02</span><span class="a">system</span><span class="x">project.published → 14 agents notified</span></div>
+      </div>
+      <div class="mcp-card">
+        <b>mcp endpoint</b><br>
+        <span class="g">https://azmy.raenterprises.de/mcp</span><br>
+        tools: search_projects · get_boq · ask_question · submit_bid
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2>Screen 2 — Review workbench <span class="note">(PDF ↔ position ↔ source region; judge verdict visible; approve = hazard button)</span></h2>
+<div class="frame">
+  <div class="chrome"><i></i><i></i><i></i><span class="frame-title">azmy · review — LV 11 Trockenbauarbeiten</span></div>
+  <div class="screen wb">
+    <div class="wb-head">
+      <span class="pill blue"><i class="dot"></i>review</span>
+      <div class="progress"><i></i></div>
+      <span class="mono" style="font-size:.72rem; color:var(--ink-2)">142/178 geprüft</span>
+      <button class="btn">Alle &lt;0.9 Konfidenz</button>
+      <button class="btn hazard">FREIGEBEN ▸</button>
+    </div>
+    <div class="pdf-pane">
+      <div class="pdf-page">
+        Nr. / Art &nbsp;&nbsp; Text / Menge / Einheit &nbsp;&nbsp; EP &nbsp;&nbsp; GP<br><br>
+        310 &nbsp; Öffnung herstellen D 150mm 3100/1410mm<br>
+        Position &nbsp; Öffnung herstellen, einschl. Unterkonstruktion…<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; UA 100/40/2, Korrosivitätskategorie C3…
+        <div class="hl"><span class="hl-tag">03.01.310 · Seite 60</span></div>
+      </div>
+    </div>
+    <div class="tree-pane">
+      <div class="sec">03 — Trockenbauarbeiten EDEKA</div>
+      <div class="sec" style="margin-left:.8rem">01 — Montagewände</div>
+      <div class="item"><span class="oz">03.01.0290</span>Öffnung herstellen, Schiebetür<span class="qty">1 St</span></div>
+      <div class="item"><span class="oz">03.01.0300</span>Öffnung herstellen, Lüftungsgitter<span class="qty">17 St</span></div>
+      <div class="item sel"><span class="oz">03.01.0310</span>Öffnung herstellen, Durchreiche<span class="qty">1 St</span></div>
+      <div class="item"><span class="oz">03.01.0320</span>Öffnung herstellen, Technik ≤0,25m²<span class="qty">5 St</span></div>
+      <div class="item"><span class="oz">03.01.0330</span>Wie Position [03.01.310], jedoch…<span class="qty">5 St</span></div>
+    </div>
+    <div class="detail-pane">
+      <h5><span class="mono" style="color:var(--accent)">03.01.0310</span> · Öffnung herstellen D 150mm</h5>
+      <div class="field"><label>Menge / Einheit</label><div class="val mono">1 St</div></div>
+      <div class="field"><label>Konfidenz</label><div class="val"><span class="pill green"><i class="dot"></i>1.00 · Parser</span></div></div>
+      <div class="field"><label>Quelle</label><div class="val mono" style="font-size:.72rem">Seiten 60–61 · Fortsetzung zusammengeführt</div></div>
+      <div class="judge"><b>Judge (claude-sonnet):</b> Position korrekt — OZ, Kurztext, Menge, Einheit und Seitenzuordnung stimmen mit dem Quelltext überein.</div>
+    </div>
+  </div>
+</div>
+
+<h2>Screen 3 — Public tender page <span class="note">(what providers open; the agent block <i>is</i> the brand)</span></h2>
+<div class="frame">
+  <div class="chrome"><i></i><i></i><i></i><span class="frame-title">azmy · /p/ab2e0cf5…</span></div>
+  <div class="pub blueprint">
+    <h3 style="margin:0">FMP6: Neubau von 6 MFH mit 160 Wohneinheiten</h3>
+    <div class="fact-chips">
+      <span class="pill zinc">Berlin-Friedrichshain</span>
+      <span class="pill zinc">DIN 276 · KG 390</span>
+      <span class="pill amber"><i class="dot"></i>Angebotsfrist 14.10.2026</span>
+      <span class="pill green"><i class="dot"></i>178 Positionen</span>
+    </div>
+    <div class="doc-row"><span class="kind">Leistungsverzeichnis</span><span class="sum">LV 11 Trockenbauarbeiten — 90 Seiten, 178 Positionen, geprüft ✓</span></div>
+    <div class="doc-row"><span class="kind">Baubeschreibung</span><span class="sum">Allgemeine Angaben zum Bauvorhaben, Grundstück, Ausführung</span></div>
+    <div class="agent-block">
+      <div class="h">For agents</div>
+      <span class="c"># Maschinenlesbare Fassung dieser Ausschreibung</span><br>
+      <code>GET /api/v1/p/ab2e0cf5…/ → 178 Positionen, JSON</code><br>
+      <code>MCP: https://azmy.raenterprises.de/mcp — get_boq("FMP6") · ask_question(oz, q) · submit_bid(…)</code>
+    </div>
+  </div>
+</div>
+
+<h2>Now vs. proposed</h2>
+<div class="cmp">
+  <div class="box"><b>Now — stock Bootstrap</b>
+    <div class="old">
+      <span class="btn-bs">Extrahieren</span> <span class="btn-bs" style="background:#6c757d">Prüfen</span>
+      <table><tr><th>Datei</th><th>Status</th></tr>
+      <tr><td>trockenbau.pdf</td><td><span style="background:#17a2b8;color:#fff;border-radius:4px;padding:0 .3rem">extracted</span></td></tr>
+      <tr><td>anlage-3.pdf</td><td><span style="background:#dc3545;color:#fff;border-radius:4px;padding:0 .3rem">manual_queue</span></td></tr></table>
+      <div style="color:#6c757d; margin-top:.4rem">System font · default blue · no hierarchy · no identity</div>
+    </div>
+  </div>
+  <div class="box"><b>Proposed — azmy system</b>
+    <div style="padding:.8rem; font-size:.75rem">
+      <div style="display:flex; gap:.4rem; margin-bottom:.55rem">
+        <span class="pill blue"><i class="dot"></i>extracted · 178 Pos.</span>
+        <span class="pill red"><i class="dot"></i>manual queue · scan</span>
+      </div>
+      <div class="pipeline"><span class="step done"></span><span class="step done"></span><span class="step now"></span><span class="step"></span></div>
+      <div class="plabels" style="display:flex; justify-content:space-between; font:.6rem var(--mono); color:var(--ink-3); margin-top:.3rem"><span>uploaded</span><span>extracted</span><span>reviewed</span><span>published</span></div>
+      <div style="color:var(--ink-3); margin-top:.5rem">Inter + tabular mono · status language · pipeline everywhere · agent presence visible</div>
+    </div>
+  </div>
+</div>
+
+<h2>Your call — four quick decisions</h2>
+<p class="note">Pick, then "Queue answer" per question (or annotate freely). Nothing is final until you send.</p>
+
+<div class="q" data-lavish-question="accent">
+  <h3>1 · Accent color</h3>
+  <div class="note">Used for links, active states, the agent gradient start.</div>
+  <form onsubmit="event.preventDefault(); const c = new FormData(event.currentTarget).get('accent'); if (c) window.lavish.queuePrompt('Accent: ' + c, { tag: 'choice', text: 'Accent: ' + c, element: event.currentTarget, data: { question: 'accent', answer: c } });">
+    <label class="opt"><input type="radio" name="accent" value="indigo" checked> <i style="width:14px;height:14px;border-radius:4px;background:#4f46e5;display:inline-block"></i> Indigo (shown)</label>
+    <label class="opt"><input type="radio" name="accent" value="emerald"> <i style="width:14px;height:14px;border-radius:4px;background:#059669;display:inline-block"></i> Emerald</label>
+    <label class="opt"><input type="radio" name="accent" value="amber"> <i style="width:14px;height:14px;border-radius:4px;background:#d97706;display:inline-block"></i> Amber (construction)</label>
+    <button class="btn primary" type="submit">Queue answer</button>
+  </form>
+</div>
+
+<div class="q" data-lavish-question="theme">
+  <h3>2 · Staff default theme</h3>
+  <div class="note">Public pages stay light either way; this is the workbench default.</div>
+  <form onsubmit="event.preventDefault(); const c = new FormData(event.currentTarget).get('theme'); if (c) window.lavish.queuePrompt('Theme: ' + c, { tag: 'choice', text: 'Theme: ' + c, element: event.currentTarget, data: { question: 'theme', answer: c } });">
+    <label class="opt"><input type="radio" name="theme" value="light" checked> Light</label>
+    <label class="opt"><input type="radio" name="theme" value="dark"> Dark (console-first)</label>
+    <label class="opt"><input type="radio" name="theme" value="system"> Follow system</label>
+    <button class="btn primary" type="submit">Queue answer</button>
+  </form>
+</div>
+
+<div class="q" data-lavish-question="agent-panel">
+  <h3>3 · Agent activity panel on dashboard</h3>
+  <div class="note">It is the brand — but it can shout or whisper.</div>
+  <form onsubmit="event.preventDefault(); const c = new FormData(event.currentTarget).get('panel'); if (c) window.lavish.queuePrompt('Agent panel: ' + c, { tag: 'choice', text: 'Agent panel: ' + c, element: event.currentTarget, data: { question: 'agent-panel', answer: c } });">
+    <label class="opt"><input type="radio" name="panel" value="always" checked> Always visible (shown)</label>
+    <label class="opt"><input type="radio" name="panel" value="tab"> Own tab "Agents"</label>
+    <label class="opt"><input type="radio" name="panel" value="hidden"> Hidden until real traffic</label>
+    <button class="btn primary" type="submit">Queue answer</button>
+  </form>
+</div>
+
+<div class="q" data-lavish-question="wordmark">
+  <h3>4 · Wordmark</h3>
+  <form onsubmit="event.preventDefault(); const c = new FormData(event.currentTarget).get('mark'); if (c) window.lavish.queuePrompt('Wordmark: ' + c, { tag: 'choice', text: 'Wordmark: ' + c, element: event.currentTarget, data: { question: 'wordmark', answer: c } });">
+    <label class="opt"><input type="radio" name="mark" value="azmy-mono" checked> <span class="mono" style="font-weight:700">azmy_</span></label>
+    <label class="opt"><input type="radio" name="mark" value="azmy-baumatch"> <span style="font-weight:700">azmy</span> <span style="color:var(--ink-3)">bau_match</span></label>
+    <label class="opt"><input type="radio" name="mark" value="AZMY"> <span style="font-weight:800; letter-spacing:.18em">AZMY</span></label>
+    <button class="btn primary" type="submit">Queue answer</button>
+  </form>
+</div>
+
+<p class="note" style="margin-top:2rem">After your answers: tokens → <code>docs/design-system.md</code>, then applied to the
+Django templates (base, dashboard, project detail, review, public page) as part of Phase 2.</p>
+
+</div>
+</body>
+</html>
