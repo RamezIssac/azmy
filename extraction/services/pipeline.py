@@ -97,7 +97,10 @@ def extract_document(document: Document) -> Document:
             return document
 
         if document.run_judge:
-            judge_notes = llm.judge_extraction(document)
+            try:
+                judge_notes = llm.judge_extraction(document)
+            except Exception as exc:  # noqa: BLE001 — judge is advisory only
+                judge_notes = {"ok": None, "error": f"{type(exc).__name__}: {exc}"}
             if judge_notes:
                 document.extraction_report["judge"] = judge_notes
 

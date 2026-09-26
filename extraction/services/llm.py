@@ -147,7 +147,7 @@ def judge_extraction(document) -> dict:
                 "role": "user",
                 "content": (
                     "Extrahierte Positionen:\n"
-                    + json.dumps(sample, ensure_ascii=False)
+                    + json.dumps(sample, ensure_ascii=False, default=str)
                     + "\n\nQuelltext:\n"
                     + "\n".join(excerpts)
                 ),

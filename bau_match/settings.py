@@ -3,7 +3,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# override=True: the host's .env beats any inherited environment (rambo spec §2.1)
+load_dotenv(override=True)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

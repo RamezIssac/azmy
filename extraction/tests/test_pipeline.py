@@ -44,6 +44,21 @@ class PipelineTest(TestCase):
         for item in LVItem.objects.filter(section__lv=doc.lv):
             self.assertIsNotNone(item.page_start)
 
+    def test_pdf_pipeline_with_judge_failure_still_succeeds(self):
+        """Judge crashes (e.g. serialization) must not fail the extraction."""
+        from unittest import mock
+
+        doc = make_document(self.user, "trockenbauarbeiten.pdf", "lv", run_judge=True)
+        with mock.patch(
+            "extraction.services.llm.judge_extraction",
+            side_effect=TypeError("Object of type Decimal is not JSON serializable"),
+        ):
+            extract_document(doc)
+        doc.refresh_from_db()
+        self.assertEqual(doc.status, Document.Status.EXTRACTED)
+        self.assertEqual(doc.lv.item_count, 178)
+        self.assertIn("judge", doc.extraction_report)
+
     def test_gaeb_import(self):
         doc = make_document(self.user, "sample.x83", "gaeb")
         extract_document(doc)
