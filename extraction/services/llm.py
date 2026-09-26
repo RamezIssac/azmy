@@ -129,6 +129,34 @@ def suggest_din276(lv) -> str:
     return "".join(ch for ch in str(group) if ch.isdigit())[:3]
 
 
+def summarize_document(front_text: str) -> dict:
+    """Classify and summarize a non-LV document (notice, report, certificate…).
+
+    Returns {"document_kind": str, "title": str, "summary": str,
+             "key_facts": {"deadlines": [...], "contact": str, "scope": str}}.
+    """
+    if not front_text.strip():
+        return {}
+    result = chat(
+        settings.OPENROUTER_MODEL_METADATA,
+        [
+            {
+                "role": "system",
+                "content": (
+                    "Du analysierst Dokumente aus deutschen Bau-Ausschreibungen. "
+                    "Identifiziere das Dokument und fasse es zusammen. Antworte als JSON "
+                    "mit exakt diesen Schlüsseln: document_kind (z.B. "
+                    "Interessenbekundungsverfahren, Energieausweis, Brandschutzbericht, "
+                    "Grundrisse, Baubeschreibung, Sonstiges), title, summary (2-3 Sätze), "
+                    "key_facts: {deadlines: [Strings], contact: String, scope: String}."
+                ),
+            },
+            {"role": "user", "content": front_text[:12000]},
+        ],
+    )
+    return result or {}
+
+
 def judge_extraction(document) -> dict:
     """Second LLM critiques the extraction against the source text.
 

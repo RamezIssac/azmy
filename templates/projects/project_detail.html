@@ -72,6 +72,7 @@
         </td>
         <td>{{ doc.page_count|default:"—" }}</td>
         <td class="text-end">
+          <a class="btn btn-sm btn-outline-secondary" href="{{ doc.file.url }}" target="_blank">Öffnen</a>
           {% if doc.status == 'uploaded' or doc.status == 'failed' %}
             <form method="post" action="{% url 'projects:process_document' doc.pk %}" class="d-inline">{% csrf_token %}
               <button class="btn btn-sm btn-outline-primary">Extrahieren</button>

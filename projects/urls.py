@@ -25,6 +25,7 @@ urlpatterns = [
         name="process_document",
     ),
     path("documents/<int:pk>/file/", views.document_file, name="document_file"),
+    path("files/<path:path>", views.serve_private_file, name="private_file"),
     # public, token-gated
     path("p/<uuid:token>/", views.public_project, name="public"),
     path("api/v1/p/<uuid:token>/", views.public_project_api, name="public_api"),

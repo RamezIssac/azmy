@@ -198,9 +198,12 @@ class LVParser:
     def parse(self, pages: list[PageText]) -> ParsedLV:
         position_pages = [p for p in pages if POSITIONS_HEADER in p.text]
         if not position_pages:
-            # fallback: try every page (foreign layouts without the header)
-            position_pages = pages
-            self.warnings.append("no positions-header pages found; parsed all pages")
+            # no fallback: parsing narrative pages as positions produces garbage.
+            # The pipeline routes such documents to the manual queue instead.
+            self.warnings.append("no positions-header pages found")
+            return ParsedLV(report={"item_count": 0, "section_count": 0,
+                                    "items_without_qty": 0, "low_confidence": [],
+                                    "warnings": self.warnings})
 
         for page in position_pages:
             self._parse_page(page)

@@ -90,6 +90,49 @@ class PipelineTest(TestCase):
         self.assertEqual(doc.status, Document.Status.MANUAL_QUEUE)
         self.assertFalse(LV.objects.filter(document=doc).exists())
 
+    def test_narrative_doc_as_lv_is_not_garbage_parsed(self):
+        """A notice/procedure PDF has no position table: manual queue, no items."""
+        doc = make_document(
+            self.user, "interessenbekundungsverfahren-haus-der-gesundheit.pdf", "lv"
+        )
+        extract_document(doc)
+        doc.refresh_from_db()
+        self.assertEqual(doc.status, Document.Status.MANUAL_QUEUE)
+        self.assertIn(
+            "no LV position table", doc.extraction_report.get("reason", "")
+        )
+        self.assertFalse(LV.objects.filter(document=doc).exists())
+
+    def test_narrative_doc_as_spec_is_summarized(self):
+        """Non-LV docs with text get an LLM document_intel summary."""
+        from unittest import mock
+
+        doc = make_document(
+            self.user, "interessenbekundungsverfahren-haus-der-gesundheit.pdf", "spec"
+        )
+        fake = {
+            "document_kind": "Interessenbekundungsverfahren",
+            "title": "Haus der Gesundheit",
+            "summary": "…",
+            "key_facts": {"deadlines": [], "contact": "", "scope": ""},
+        }
+        with mock.patch(
+            "extraction.services.llm.summarize_document", return_value=fake
+        ):
+            extract_document(doc)
+        doc.refresh_from_db()
+        self.assertEqual(doc.status, Document.Status.EXTRACTED)
+        self.assertEqual(
+            doc.extraction_report["document_intel"]["document_kind"],
+            "Interessenbekundungsverfahren",
+        )
+
+    def test_scan_spec_goes_to_manual_queue(self):
+        doc = make_document(self.user, "scan_like.pdf", "spec")
+        extract_document(doc)
+        doc.refresh_from_db()
+        self.assertEqual(doc.status, Document.Status.MANUAL_QUEUE)
+
 
 @override_settings(OPENROUTER_API_KEY="")
 class PublishFlowTest(TestCase):
@@ -152,3 +195,27 @@ class PublishFlowTest(TestCase):
         self.assertEqual(resp.status_code, 302)
         resp = self.client.get(f"/extraction/documents/{doc.pk}/review/")
         self.assertEqual(resp.status_code, 302)
+
+    def test_private_file_download(self):
+        """file.url must actually serve the file (regression: PrivateStorage
+        pointed at /media/ where the files are not)."""
+        doc = make_document(self.user, "sample.x83", "gaeb")
+        client = self.client
+        self.assertTrue(client.login(email="staff2@example.com", password="x"))
+
+        # via file.url (admin links, templates)
+        resp = client.get(doc.file.url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.headers["Content-Type"], "application/xml")
+        content = b"".join(resp.streaming_content)
+        self.assertIn(b"<GAEB", content)
+
+        # via the pk-based view
+        resp = client.get(f"/documents/{doc.pk}/file/", follow=True)
+        self.assertEqual(resp.status_code, 200)
+
+        # traversal + unknown files are refused
+        resp = client.get("/files/../manage.py/")
+        self.assertIn(resp.status_code, (400, 404))
+        resp = client.get("/files/projects/999/set-9/nope.pdf/")
+        self.assertEqual(resp.status_code, 404)

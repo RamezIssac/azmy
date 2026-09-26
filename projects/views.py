@@ -8,6 +8,15 @@ from extraction.models import LV, LVItem
 from extraction.tasks import enqueue_extraction
 
 from .models import Document, DocumentSet, Project
+from .storage import private_storage
+
+PRIVATE_CONTENT_TYPES = {
+    ".pdf": "application/pdf",
+    ".x83": "application/xml",
+    ".x31": "application/xml",
+    ".xml": "application/xml",
+    ".txt": "text/plain; charset=utf-8",
+}
 
 
 # ---------------------------------------------------------------- staff area
@@ -105,10 +114,21 @@ def process_document(request, pk):
 def document_file(request, pk):
     """Staff-gated delivery of private tender documents."""
     document = get_object_or_404(Document, pk=pk)
+    return redirect("/files/" + document.file.name)
+
+
+@staff_member_required
+def serve_private_file(request, path):
+    """Serve a file from PRIVATE_ROOT. Backs PrivateStorage.base_url (file.url)."""
+    name = path.lstrip("/")
+    if ".." in name.split("/") or not private_storage.exists(name):
+        raise Http404
+    suffix = "." + name.rsplit(".", 1)[-1].lower() if "." in name else ""
+    content_type = PRIVATE_CONTENT_TYPES.get(suffix, "application/octet-stream")
     return FileResponse(
-        document.file.open("rb"),
-        content_type="application/pdf",
-        filename=document.original_filename,
+        private_storage.open(name, "rb"),
+        content_type=content_type,
+        filename=name.rsplit("/", 1)[-1],
     )
 
 

@@ -74,9 +74,17 @@ def extract_document(document: Document) -> Document:
             content = read_pdf(document.file.path)
             document.page_count = content.page_count
             document.text_layer_ok = content.text_layer_ok
-            if not content.text_layer_ok:
+            if not content.positions_pages:
+                reason = (
+                    "no usable text layer (scan?)"
+                    if content.text_coverage == 0
+                    else "no LV position table detected (not an LV?)"
+                )
                 document.status = Document.Status.MANUAL_QUEUE
-                document.extraction_report = {"reason": "no usable text layer (scan?)"}
+                document.extraction_report = {
+                    "reason": reason,
+                    "text_coverage": round(content.text_coverage, 3),
+                }
                 document.save()
                 return document
             parsed = parse_lv_pages(content.pages)
@@ -91,7 +99,19 @@ def extract_document(document: Document) -> Document:
                 lv.din276_group = din
                 lv.save(update_fields=["din276_group"])
         else:
-            # plans/specs/other: stored for later RAG — nothing to extract yet
+            # plans/specs/notices/other: stored for later RAG. If there is a
+            # text layer, let the LLM identify and summarize the document.
+            content = read_pdf(document.file.path)
+            document.page_count = content.page_count
+            document.text_layer_ok = content.text_layer_ok
+            if content.text_coverage == 0:
+                document.status = Document.Status.MANUAL_QUEUE
+                document.extraction_report = {"reason": "no usable text layer (scan?)"}
+                document.save()
+                return document
+            intel = llm.summarize_document(content.text_through(6))
+            if intel:
+                document.extraction_report["document_intel"] = intel
             document.status = Document.Status.EXTRACTED
             document.save()
             return document

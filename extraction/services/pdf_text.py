@@ -24,12 +24,18 @@ class PdfContent:
     pages: list[PageText] = field(default_factory=list)
 
     @property
-    def text_layer_ok(self) -> bool:
-        """Heuristic: at least half of the pages yield meaningful text."""
+    def text_coverage(self) -> float:
+        """Share of pages that yield meaningful text (0..1)."""
         if not self.pages:
-            return False
+            return 0.0
         with_text = sum(1 for p in self.pages if len(p.text.strip()) > 20)
-        return with_text >= max(1, len(self.pages) // 2)
+        return with_text / len(self.pages)
+
+    @property
+    def text_layer_ok(self) -> bool:
+        """At least half of the pages yield text. Use text_coverage for nuance
+        (mixed text+drawing documents sit below 0.5 but are still usable)."""
+        return self.text_coverage >= 0.5
 
     @property
     def positions_pages(self) -> list[PageText]:
