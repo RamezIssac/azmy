@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>azmy — system architecture</title>
+<script type="application/json" data-lavish-revisions>
+[{ "id": "r2", "label": "Round 2", "timestamp": "2026-09-27T01:00:00Z", "summary": "RAG deferred to phase 3 (with agent substrate); OCR uses free-tier models with per-task routing; provider identity locked (staff-created); RAG node now answers why LV parser output does not flow through it" }]
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #fafaf9; --surface: #ffffff; --ink: #111827; --ink-2: #4b5563; --ink-3: #9ca3af;
+  --hairline: #e7e5e4; --accent: #4f46e5; --accent-soft: #eef2ff;
+  --agent-from: #4f46e5; --agent-to: #06b6d4;
+  --ok: #059669; --warn: #d97706; --bad: #dc2626;
+  --dark: #0b1220; --dark-2: #111a2e; --dark-line: #1e2b45;
+  --mono: "JetBrains Mono", ui-monospace, monospace; --sans: "Inter", system-ui, sans-serif;
+  --r-lg: 14px; --r-md: 10px; --r-sm: 7px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 var(--sans); }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+h1 { font-size: 1.9rem; letter-spacing: -.02em; margin: 0 0 .3rem; }
+h2 { font-size: 1.15rem; letter-spacing: -.01em; margin: 3rem 0 .3rem; }
+.sub, .note { color: var(--ink-2); }
+.sub { margin: 0; max-width: 72ch; }
+.note { font-size: .86rem; }
+.kicker { font: 600 .72rem/1 var(--mono); text-transform: uppercase; letter-spacing: .14em; color: var(--accent); margin-bottom: .6rem; }
+section, figure { min-width: 0; }
+svg { max-width: 100%; height: auto; display: block; }
+figure { margin: 1rem 0 0; border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface); padding: 1.2rem; box-shadow: 0 18px 50px -35px rgba(17,24,39,.35); }
+figcaption { font-size: .8rem; color: var(--ink-3); margin-top: .6rem; }
+.legend { display: flex; gap: 1.2rem; flex-wrap: wrap; font: .72rem var(--mono); color: var(--ink-2); margin-top: .7rem; }
+.legend span { display: inline-flex; align-items: center; gap: .4rem; }
+.legend i { width: 22px; border-top: 2px solid var(--ink); display: inline-block; }
+.legend i.dash { border-top-style: dashed; border-color: var(--accent); }
+.legend i.dot { border-top-style: dotted; border-color: var(--ink-3); }
+.legend b { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: .8rem; margin-top: 1rem; }
+.card { border: 1px solid var(--hairline); border-radius: var(--r-md); background: var(--surface); padding: .8rem .95rem; min-width: 0; }
+.card h4 { margin: 0 0 .3rem; font-size: .85rem; }
+.card p { margin: .2rem 0 .4rem; font-size: .78rem; color: var(--ink-2); }
+.card code { font: .68rem var(--mono); color: var(--accent); background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.card .files { font: .66rem var(--mono); color: var(--ink-3); overflow-wrap: anywhere; }
+.pill { display: inline-flex; align-items: center; gap: .35rem; font: 600 .66rem/1 var(--sans); padding: .35rem .6rem; border-radius: 999px; }
+.pill.live { background: #ecfdf5; color: var(--ok); }
+.pill.p2 { background: var(--accent-soft); color: var(--accent); }
+.pill.p3 { background: #f4f4f5; color: var(--ink-3); }
+table { border-collapse: collapse; width: 100%; margin-top: .8rem; font-size: .8rem; }
+th, td { border: 1px solid var(--hairline); padding: .45rem .7rem; text-align: left; vertical-align: top; }
+th { background: #fbfbfa; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+td code { font: .72rem var(--mono); color: var(--accent); }
+/* svg node styles */
+.node { fill: var(--surface); stroke: var(--hairline); stroke-width: 1.2; }
+.node.new { stroke: var(--accent); stroke-dasharray: 5 3; }
+.node.ext { fill: #fbfbfa; }
+.node.dark { fill: var(--dark); stroke: var(--dark-line); }
+.node.dark + text, text.on-dark { fill: #cbd5e1; }
+text { font: 600 11px var(--sans); fill: var(--ink); }
+text.sm { font: 500 9.5px var(--mono); fill: var(--ink-3); font-weight: 500; }
+text.on-dark.sm { fill: #64748b; }
+.edge { stroke: var(--ink-3); stroke-width: 1.3; fill: none; marker-end: url(#arr); }
+.edge.new { stroke: var(--accent); stroke-dasharray: 5 3; }
+.edge.lbl { }
+.edge-label { font: 500 9px var(--mono); fill: var(--ink-3); }
+.zone { fill: none; stroke: var(--hairline); stroke-dasharray: 3 4; rx: 12; }
+.zone-label { font: 600 9px var(--mono); fill: var(--ink-3); letter-spacing: .1em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="kicker">azmy · bau_match — architecture</div>
+<h1>System architecture, as built and as planned</h1>
+<p class="sub">Three diagrams, three questions: <b>where does a PDF go</b>, <b>what runs where</b>,
+<b>what knows what</b>. Solid = live in production today. <span style="color:var(--accent)">Dashed indigo</span>
+= Phase 2 (scope locked: 2A multi-document intelligence + 2C web bidding).
+<span style="color:var(--ink-3)">Dotted gray</span> = Phase 3 (agent substrate). Annotate any node.</p>
+
+<div class="legend">
+  <span><i></i> live</span>
+  <span><i class="dash"></i> phase 2</span>
+  <span><i class="dot"></i> phase 3</span>
+</div>
+
+<h2>1 · Where does a PDF go? <span class="note">— the pipeline</span></h2>
+<figure>
+<svg viewBox="0 0 1120 340" role="img" aria-label="Extraction pipeline">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"></path>
+    </marker>
+  </defs>
+
+  <!-- upload -->
+  <rect class="node" id="n-upload" x="10" y="120" width="130" height="66" rx="10"><title>Staff upload: 1..n files per DocumentSet (versioned)</title></rect>
+  <text x="75" y="146" text-anchor="middle">Staff upload</text>
+  <text x="75" y="164" text-anchor="middle" class="sm">DocumentSet v n</text>
+
+  <!-- triage -->
+  <rect class="node" id="n-triage" x="185" y="120" width="130" height="66" rx="10"><title>pdf_text.read_pdf: pypdfium2 text layer, per-page coverage</title></rect>
+  <text x="250" y="146" text-anchor="middle">Triage</text>
+  <text x="250" y="164" text-anchor="middle" class="sm">text layer? type?</text>
+
+  <!-- parser -->
+  <rect class="node" id="n-parser" x="360" y="40" width="150" height="66" rx="10"><title>lv_parser: deterministic sections + positions, confidence + page refs</title></rect>
+  <text x="435" y="66" text-anchor="middle">LV parser</text>
+  <text x="435" y="84" text-anchor="middle" class="sm">OZ · Menge · Einheit</text>
+
+  <!-- vision ocr (p2) -->
+  <rect class="node new" id="n-ocr" x="360" y="130" width="150" height="66" rx="10"><title>Phase 2A: render pages to images, vision LLM transcribes scans</title></rect>
+  <text x="435" y="156" text-anchor="middle">Vision OCR</text>
+  <text x="435" y="174" text-anchor="middle" class="sm">phase 2A · scans</text>
+
+  <!-- doc intel -->
+  <rect class="node" id="n-intel" x="360" y="220" width="150" height="66" rx="10"><title>llm.summarize_document: kind, title, summary, key facts</title></rect>
+  <text x="435" y="246" text-anchor="middle">Doc intelligence</text>
+  <text x="435" y="264" text-anchor="middle" class="sm">kind · summary · facts</text>
+
+  <!-- llm enrichment -->
+  <rect class="node" id="n-llm" x="560" y="40" width="150" height="66" rx="10"><title>llm.py: metadata, DIN 276 coding; judge = second LLM audit</title></rect>
+  <text x="635" y="60" text-anchor="middle">LLM enrich</text>
+  <text x="635" y="76" text-anchor="middle" class="sm">metadata · KG · judge</text>
+  <text x="635" y="92" text-anchor="middle" class="sm">failure-tolerant</text>
+
+  <!-- rag (phase 3 — deferred from 2A by review) -->
+  <rect class="node" id="n-rag" x="560" y="220" width="150" height="66" rx="10" style="stroke:#9ca3af; stroke-dasharray:3 3"><title>Phase 3 now (was 2A). Why doesn't the LV parser pass through here? Because position pages become STRUCTURED rows — queryable directly, nothing to fuzzy-search. RAG indexes what stays unstructured: narrative front matter (ZTV/Baubeschreibung) + all non-LV docs.</title></rect>
+  <text x="635" y="246" text-anchor="middle">RAG index</text>
+  <text x="635" y="264" text-anchor="middle" class="sm">phase 3 · see note below</text>
+
+  <!-- review -->
+  <rect class="node" id="n-review" x="770" y="120" width="140" height="66" rx="10"><title>Human-gated: nothing publishes without approval (trust story)</title></rect>
+  <text x="840" y="146" text-anchor="middle">Review gate</text>
+  <text x="840" y="164" text-anchor="middle" class="sm">human approval</text>
+
+  <!-- publish -->
+  <rect class="node" id="n-publish" x="960" y="120" width="140" height="66" rx="10"><title>Public token link + read-only JSON API</title></rect>
+  <text x="1030" y="146" text-anchor="middle">Published</text>
+  <text x="1030" y="164" text-anchor="middle" class="sm">token link + API</text>
+
+  <!-- openrouter -->
+  <rect class="node ext" id="n-openrouter" x="560" y="130" width="150" height="52" rx="10"><title>OpenRouter: free-tier models at the moment; per-task routing via OPENROUTER_MODEL_* settings</title></rect>
+  <text x="635" y="152" text-anchor="middle" class="sm" style="fill:var(--ink-2)">OpenRouter API</text>
+  <text x="635" y="168" text-anchor="middle" class="sm">free tier · routed per task</text>
+
+  <!-- edges -->
+  <path class="edge" id="e1" d="M140 153 L185 153"><title>files</title></path>
+  <path class="edge" id="e2" d="M315 140 C 340 120, 335 80, 360 72"><title>LV with position table</title></path>
+  <path class="edge" id="e3" d="M315 153 L360 153"><title>scanned pages</title></path>
+  <path class="edge" id="e4" d="M315 166 C 340 180, 335 240, 360 250"><title>narrative docs</title></path>
+  <path class="edge" id="e5" d="M510 73 L560 73"><title>tree</title></path>
+  <path class="edge new" id="e6" d="M510 163 C 535 163, 535 240, 560 250"><title>text</title></path>
+  <path class="edge" id="e7" d="M510 253 L560 253"><title>intel</title></path>
+  <path class="edge" id="e8" d="M635 106 L635 130"><title>calls</title></path>
+  <path class="edge new" id="e9" d="M510 150 C 540 140, 530 140, 560 142"><title>page images</title></path>
+  <path class="edge" id="e10" d="M710 73 C 750 73, 740 140, 770 150"><title>LV tree + report</title></path>
+  <path class="edge" id="e11" d="M710 253 C 760 253, 740 170, 770 162" style="stroke:#9ca3af; stroke-dasharray:3 3"><title>answers + citations</title></path>
+  <path class="edge" id="e12" d="M910 153 L960 153"><title>approved</title></path>
+
+  <!-- manual queue -->
+  <rect class="node" id="n-manual" x="185" y="260" width="130" height="52" rx="10"><title>Scans (until 2A) and non-LV structure: manual processing</title></rect>
+  <text x="250" y="282" text-anchor="middle" class="sm" style="fill:var(--bad)">manual queue</text>
+  <text x="250" y="298" text-anchor="middle" class="sm">safety valve</text>
+  <path class="edge" id="e13" d="M250 186 L250 260"><title>no text layer</title></path>
+</svg>
+<figcaption>The judge never blocks: its failure degrades to a report note, not a failed document.
+Scans route to the manual queue today; vision OCR (2A) empties it.<br>
+<b>Why does the LV parser skip the RAG index?</b> Position pages become structured rows
+(OZ, Menge, Einheit) — queried directly, nothing to fuzzy-search. RAG (phase 3) indexes what
+stays unstructured: LV front matter (ZTV, Baubeschreibung) and all non-LV documents.</figcaption>
+</figure>
+
+<h2>2 · What runs where? <span class="note">— deployment topology (rasystem26, via rambo)</span></h2>
+<figure>
+<svg viewBox="0 0 1120 400" role="img" aria-label="Deployment topology">
+  <defs>
+    <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"></path>
+    </marker>
+  </defs>
+
+  <!-- browser zone -->
+  <rect class="zone" x="10" y="30" width="170" height="200" rx="12"></rect>
+  <text class="zone-label" x="30" y="52">Clients</text>
+  <rect class="node" id="d-staff" x="35" y="70" width="120" height="44" rx="8"><title>Staff: dashboard, review workbench</title></rect>
+  <text x="95" y="96" text-anchor="middle">Staff</text>
+  <rect class="node" id="d-provider" x="35" y="130" width="120" height="44" rx="8"><title>Phase 2C: provider web portal (allauth accounts)</title></rect>
+  <text x="95" y="156" text-anchor="middle">Providers</text>
+  <rect class="node new" id="d-agents" x="35" y="190" width="120" height="44" rx="8" style="stroke:#9ca3af; stroke-dasharray:3 3"><title>Phase 3: agents via MCP + API keys</title></rect>
+  <text x="95" y="208" text-anchor="middle" class="sm">Agents</text>
+  <text x="95" y="222" text-anchor="middle" class="sm">phase 3</text>
+
+  <!-- server zone -->
+  <rect class="zone" x="230" y="10" width="640" height="380" rx="12"></rect>
+  <text class="zone-label" x="250" y="32">rasystem26 · 144.126.209.94</text>
+
+  <rect class="node" id="d-nginx" x="260" y="150" width="110" height="60" rx="10"><title>Nginx: TLS termination, static/media alias, /ws/ to daphne</title></rect>
+  <text x="315" y="176" text-anchor="middle">Nginx</text>
+  <text x="315" y="194" text-anchor="middle" class="sm">:443 TLS</text>
+
+  <rect class="node" id="d-uwsgi" x="430" y="60" width="180" height="70" rx="10"><title>Django app: projects, extraction, bidding (2C)</title></rect>
+  <text x="520" y="88" text-anchor="middle">uWSGI vassal</text>
+  <text x="520" y="106" text-anchor="middle" class="sm">bau_match.wsgi</text>
+
+  <rect class="node" id="d-daphne" x="430" y="160" width="180" height="56" rx="10"><title>Daphne for /ws/ — reserved, no channels yet</title></rect>
+  <text x="520" y="184" text-anchor="middle">Daphne</text>
+  <text x="520" y="200" text-anchor="middle" class="sm">/ws/ reserved</text>
+
+  <rect class="node dark" id="d-rq" x="430" y="246" width="180" height="70" rx="10"><title>rqworker-azmy.service: extraction jobs off the request path</title></rect>
+  <text x="520" y="274" text-anchor="middle" class="on-dark">RQ worker</text>
+  <text x="520" y="292" text-anchor="middle" class="on-dark sm">queue: default</text>
+
+  <rect class="node" id="d-pg" x="680" y="60" width="150" height="60" rx="10"><title>PostgreSQL: azmy db; +pgvector undecided for 2A embeddings</title></rect>
+  <text x="755" y="88" text-anchor="middle">PostgreSQL</text>
+  <text x="755" y="106" text-anchor="middle" class="sm">db azmy</text>
+
+  <rect class="node" id="d-redis" x="680" y="160" width="150" height="60" rx="10"><title>Redis: cache + RQ queue</title></rect>
+  <text x="755" y="188" text-anchor="middle">Redis</text>
+  <text x="755" y="206" text-anchor="middle" class="sm">cache · queue</text>
+
+  <rect class="node" id="d-private" x="680" y="246" width="150" height="70" rx="10"><title>PRIVATE_ROOT: tender PDFs, staff-gated via /files/ view</title></rect>
+  <text x="755" y="274" text-anchor="middle">Private files</text>
+  <text x="755" y="292" text-anchor="middle" class="sm">/files/ gated</text>
+
+  <!-- rambo zone -->
+  <rect class="zone" x="910" y="30" width="200" height="150" rx="12"></rect>
+  <text class="zone-label" x="930" y="52">this machine</text>
+  <rect class="node" id="d-rambo" x="935" y="70" width="150" height="80" rx="10"><title>rambo hosting branch worktree: HostedApplication record, ansible deploys</title></rect>
+  <text x="1010" y="100" text-anchor="middle">rambo</text>
+  <text x="1010" y="118" text-anchor="middle" class="sm">ansible deploy</text>
+  <text x="1010" y="134" text-anchor="middle" class="sm">git push triggers</text>
+
+  <!-- edges -->
+  <path class="edge" id="de1" d="M180 92 C 220 92, 220 165, 260 168"><title>HTTPS</title></path>
+  <path class="edge" id="de2" d="M180 152 C 220 152, 220 178, 260 180"><title>HTTPS</title></path>
+  <path class="edge" id="de3" d="M370 165 C 400 160, 400 110, 430 100"><title>/ → uwsgi socket</title></path>
+  <path class="edge" id="de4" d="M370 185 L430 188"><title>/ws/ → daphne</title></path>
+  <path class="edge" id="de5" d="M610 95 L680 90"><title>SQL</title></path>
+  <path class="edge" id="de6" d="M610 190 L680 190"><title>cache</title></path>
+  <path class="edge" id="de7" d="M610 281 L680 281"><title>files</title></path>
+  <path class="edge" id="de8" d="M520 246 C 520 230, 600 210, 680 200"><title>jobs</title></path>
+  <path class="edge" id="de9" d="M935 115 C 850 115, 830 170, 830 178" style="marker-end:url(#arr2)"><title>ssh + ansible</title></path>
+  <path class="edge" id="de10" d="M610 281 L680 281" style="display:none"></path>
+</svg>
+<figcaption>One box, boring on purpose: nginx + uWSGI + daphne + rqworker + postgres + redis.
+rambo renders the workspace from its DB and runs ansible from this machine (<code>deploy_only: azmy</code>).</figcaption>
+</figure>
+
+<h2>3 · What knows what? <span class="note">— data model (phase 2 additions dashed)</span></h2>
+<figure>
+<svg viewBox="0 0 1120 300" role="img" aria-label="Data model">
+  <defs>
+    <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"></path>
+    </marker>
+  </defs>
+
+  <rect class="node" id="m-project" x="20" y="30" width="150" height="60" rx="10"><title>projects.Project: token, published flag, client, deadline</title></rect>
+  <text x="95" y="56" text-anchor="middle">Project</text>
+  <text x="95" y="74" text-anchor="middle" class="sm">public_token</text>
+
+  <rect class="node" id="m-set" x="20" y="130" width="150" height="56" rx="10"><title>projects.DocumentSet: versioned bundle (addenda)</title></rect>
+  <text x="95" y="154" text-anchor="middle">DocumentSet</text>
+  <text x="95" y="170" text-anchor="middle" class="sm">version n</text>
+
+  <rect class="node" id="m-doc" x="20" y="220" width="150" height="60" rx="10"><title>projects.Document: file, type, status, extraction_report</title></rect>
+  <text x="95" y="246" text-anchor="middle">Document</text>
+  <text x="95" y="264" text-anchor="middle" class="sm">status machine</text>
+
+  <rect class="node" id="m-lv" x="260" y="220" width="140" height="60" rx="10"><title>extraction.LV: gewerk, DIN 276 group</title></rect>
+  <text x="330" y="246" text-anchor="middle">LV</text>
+  <text x="330" y="264" text-anchor="middle" class="sm">1:1 document</text>
+
+  <rect class="node" id="m-section" x="470" y="220" width="150" height="60" rx="10"><title>extraction.LVSection: self-nested tree (Titel/Untertitel)</title></rect>
+  <text x="545" y="246" text-anchor="middle">LVSection</text>
+  <text x="545" y="264" text-anchor="middle" class="sm">tree</text>
+
+  <rect class="node" id="m-item" x="690" y="220" width="170" height="60" rx="10"><title>extraction.LVItem: OZ, texts, Menge, Einheit, EP/GP, confidence, page refs</title></rect>
+  <text x="775" y="246" text-anchor="middle">LVItem</text>
+  <text x="775" y="264" text-anchor="middle" class="sm">oz · menge · pages</text>
+
+  <rect class="node new" id="m-provider" x="690" y="30" width="170" height="66" rx="10"><title>Phase 2C: provider account + trade codes, regions, contact</title></rect>
+  <text x="775" y="56" text-anchor="middle">Provider</text>
+  <text x="775" y="74" text-anchor="middle" class="sm">phase 2C</text>
+
+  <rect class="node new" id="m-bid" x="690" y="120" width="170" height="66" rx="10"><title>Phase 2C: bid header — status, total, submitted_at</title></rect>
+  <text x="775" y="146" text-anchor="middle">Bid</text>
+  <text x="775" y="164" text-anchor="middle" class="sm">phase 2C</text>
+
+  <rect class="node new" id="m-biditem" x="930" y="120" width="170" height="66" rx="10"><title>Phase 2C: priced line against LVItem — enables automatic leveling</title></rect>
+  <text x="1015" y="146" text-anchor="middle">BidItem</text>
+  <text x="1015" y="164" text-anchor="middle" class="sm">→ LVItem by OZ</text>
+
+  <rect class="node new" id="m-chunk" x="260" y="30" width="170" height="60" rx="10"><title>Phase 2A: text chunks + embeddings per document page range</title></rect>
+  <text x="345" y="56" text-anchor="middle">DocChunk</text>
+  <text x="345" y="74" text-anchor="middle" class="sm">phase 2A · embedding</text>
+
+  <!-- edges -->
+  <path class="edge" id="me1" d="M95 90 L95 130"><title>1—n</title></path>
+  <path class="edge" id="me2" d="M95 186 L95 220"><title>1—n</title></path>
+  <path class="edge" id="me3" d="M170 250 L260 250"><title>1—1 (if LV)</title></path>
+  <path class="edge" id="me4" d="M400 250 L470 250"><title>1—n</title></path>
+  <path class="edge" id="me5" d="M620 250 L690 250"><title>1—n</title></path>
+  <path class="edge" id="me6" d="M620 235 C 655 220, 655 235, 690 235" style="display:none"></path>
+  <path class="edge new" id="me7" d="M775 96 L775 120"><title>1—n</title></path>
+  <path class="edge new" id="me8" d="M860 153 L930 153"><title>1—n</title></path>
+  <path class="edge new" id="me9" d="M1015 186 C 1015 250, 900 250, 860 250"><title>each BidItem prices one LVItem</title></path>
+  <path class="edge new" id="me10" d="M170 235 C 220 235, 220 70, 260 62"><title>chunked</title></path>
+</svg>
+<figcaption>Every LVItem carries provenance (page_start/page_end) — bids against OZ inherit it.
+BidItem↔LVItem is the schema ownership that makes leveling automatic.</figcaption>
+</figure>
+
+<h2>Module map <span class="note">— where each piece lives in code</span></h2>
+<div class="cards">
+  <div class="card"><h4>Projects &amp; intake <span class="pill live">live</span></h4>
+    <p>Projects, versioned document sets, private storage, publish tokens.</p>
+    <div class="files">projects/models.py · projects/storage.py · projects/views.py</div></div>
+  <div class="card"><h4>LV parser <span class="pill live">live</span></h4>
+    <p>Deterministic positions from the text layer. 178/178 on the golden file.</p>
+    <div class="files">extraction/services/lv_parser.py · pdf_text.py</div></div>
+  <div class="card"><h4>LLM layer <span class="pill live">live</span></h4>
+    <p>Metadata, DIN 276, judge audit, document summaries. Failure-tolerant.</p>
+    <div class="files">extraction/services/llm.py (OpenRouter)</div></div>
+  <div class="card"><h4>GAEB import <span class="pill live">live</span></h4>
+    <p>X83 XML into the same tree; accuracy benchmark for the parser.</p>
+    <div class="files">extraction/services/gaeb_import.py</div></div>
+  <div class="card"><h4>Vision OCR <span class="pill p2">2A</span></h4>
+    <p>Render scan pages → vision model → text. Empties the manual queue.</p>
+    <div class="files">extraction/services/ocr.py (new)</div></div>
+  <div class="card" data-lavish-revision="r2"><h4>RAG index <span class="pill p3">3</span></h4>
+    <p>Chunks + embeddings over narrative docs; page-cited answers. Deferred with the agent substrate.</p>
+    <div class="files">extraction/services/rag.py (phase 3)</div></div>
+  <div class="card"><h4>Provider portal <span class="pill p2">2C</span></h4>
+    <p>allauth accounts, trade profile, browse published projects.</p>
+    <div class="files">providers/ app (new)</div></div>
+  <div class="card"><h4>Bids + leveling <span class="pill p2">2C</span></h4>
+    <p>Bid/BidItem vs OZ; staff leveling view flags gaps and outliers.</p>
+    <div class="files">bidding/ app (new)</div></div>
+  <div class="card"><h4>MCP + API keys <span class="pill p3">3</span></h4>
+    <p>The agent substrate. Bid schema already agent-compatible.</p>
+    <div class="files">agents/ or mcp_server/ (phase 3)</div></div>
+</div>
+
+<h2>Open decisions</h2>
+<table>
+<tr><th>#</th><th>Decision</th><th>Options</th><th>Leaning</th></tr>
+<tr><td>D1</td><td>RAG / embeddings index</td><td>needed at this stage?</td>
+    <td><b>Deferred to phase 3</b> (joins the agent substrate; staff Q&amp;A can live on the review UI until then)</td></tr>
+<tr><td>D2</td><td>LLM spend &amp; routing</td><td>which models for OCR / metadata / judge</td>
+    <td><b>Free-tier models now</b>; per-task routing via <code>OPENROUTER_MODEL_*</code> env — upgrade per task anytime</td></tr>
+<tr><td>D3</td><td>Provider identity</td><td>allauth email signup vs. staff-created accounts</td>
+    <td><b>Locked: staff-created first</b>, self-signup later (agreed in review)</td></tr>
+</table>
+
+</div>
+</body>
+</html>

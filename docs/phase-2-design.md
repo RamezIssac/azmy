@@ -24,17 +24,19 @@ So Phase 2 = **2A multi-document intelligence → 2B agent substrate → 2C stru
 ## 2A — Multi-document intelligence
 
 1. **Vision-LLM OCR for scans.** pypdfium2 renders pages to images → vision model
-   (gemini-2.5-flash vision via OpenRouter) transcribes → text flows into the same
-   pipeline. No tesseract/system deps. Scans leave `manual_queue` history.
+   transcribes → text flows into the same pipeline. No tesseract/system deps.
+   Scans leave `manual_queue` history. **Model: free-tier via OpenRouter**
+   (`OPENROUTER_MODEL_OCR`, default `google/gemini-2.0-flash-exp:free`).
 2. **Auto-triage.** Upload without choosing a type: classify (LV? notice? plan? report?
    certificate?) via text heuristics + LLM `document_intel`, then route. Correct the
    uploader's choice when wrong (EOI-as-LV → notice).
-3. **RAG index over all stored docs.** Chunk + embed text (incl. OCR output), store
-   embeddings (Postgres; decide: pgvector extension on rasystem26 vs. numpy cosine at
-   this scale — **decision pending**, default numpy to avoid server changes).
-4. **EOI/procedure extraction.** Notices like the Interessenbekundung carry deadlines,
+3. **EOI/procedure extraction.** Notices like the Interessenbekundung carry deadlines,
    eligibility, contacts → structured `procedure` fields on Project (extends the
    Phase 1 metadata pass to non-LV docs).
+
+~~RAG index~~ → **deferred to Phase 3** (review, 2026-09-27): position pages are
+structured rows already — RAG adds value for narrative front matter + non-LV docs,
+which matters once agents ask questions. Lives with the agent substrate.
 
 ## 2B — Agent substrate (the differentiator)
 
@@ -62,14 +64,29 @@ So Phase 2 = **2A multi-document intelligence → 2B agent substrate → 2C stru
 Drawing takeoff (measurement off plans), negotiations/award workflow, multi-tenancy,
 provider reputation, GC portal monitoring, payments.
 
+## LLM routing (decided 2026-09-27)
+
+Free-tier models at the moment; **per-task routing** via env — upgrade any task
+independently in production without a code change:
+
+| Setting | Task | Default (free tier) |
+|---|---|---|
+| `OPENROUTER_MODEL_METADATA` | project/doc metadata | `qwen/qwen3.8-27b:free` |
+| `OPENROUTER_MODEL_STRUCTURE` | DIN 276, structuring | `qwen/qwen3.8-27b:free` |
+| `OPENROUTER_MODEL_OCR` | scan transcription (vision) | `google/gemma-4-31b-it:free` |
+| `OPENROUTER_MODEL_JUDGE` | extraction audit | `qwen/qwen3.8-27b:free` |
+
+Free tier is **rate-limited and occasionally 429s** — `llm.chat()` retries with
+backoff, and every LLM step is failure-tolerant (skips rather than fails). Slugs were
+picked from the live `/models` list on 2026-09-27; check availability before changing.
+
 ## Order of attack
 
 1. Vision OCR (unblocks the 50% of real docs that are scans)
-2. Provider accounts (allauth) + provider profile (trade codes, regions)
+2. Provider accounts — **staff-created first** (agreed in review), self-signup later
 3. Bid schema + provider bid form (web) + leveling view for staff
-4. RAG index over all docs (powers staff Q&A now, `ask_question` in Phase 3)
 
 ## Deferred to Phase 3
 
-MCP server, provider API keys + scopes, webhooks/event feed, provider reputation,
-GC portal monitoring.
+MCP server, provider API keys + scopes, webhooks/event feed, **RAG index + ask_question**,
+provider reputation, GC portal monitoring.

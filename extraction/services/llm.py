@@ -48,18 +48,28 @@ def chat(model: str, messages: list[dict], json_mode: bool = True) -> dict | Non
     payload: dict = {"model": model, "messages": messages, "temperature": 0}
     if json_mode:
         payload["response_format"] = {"type": "json_object"}
+    import time
+
     try:
-        resp = httpx.post(
-            f"{settings.OPENROUTER_BASE_URL}/chat/completions",
-            headers={
-                "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
-                "HTTP-Referer": "https://azmy.raenterprises.de",
-                "X-Title": "azmy bau_match",
-            },
-            json=payload,
-            timeout=TIMEOUT,
-        )
-        resp.raise_for_status()
+        resp = None
+        for attempt in (1, 2, 3):
+            resp = httpx.post(
+                f"{settings.OPENROUTER_BASE_URL}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+                    "HTTP-Referer": "https://azmy.raenterprises.de",
+                    "X-Title": "azmy bau_match",
+                },
+                json=payload,
+                timeout=TIMEOUT,
+            )
+            if resp.status_code == 429 and attempt < 3:
+                wait = 15 * attempt  # free tier is throttled; back off and retry
+                logger.info("rate-limited (429) on %s — retry %d in %ds", model, attempt, wait)
+                time.sleep(wait)
+                continue
+            resp.raise_for_status()
+            break
         content = resp.json()["choices"][0]["message"]["content"]
         if not json_mode:
             return {"text": content}

@@ -170,11 +170,21 @@ else:
 
 RQ_ENABLED = bool(REDIS_URL) and os.getenv("RQ_ENABLED", "True") == "True"
 
-# OpenRouter — LLM extraction/structuring/judge (models assigned per task, see docs)
+# OpenRouter — LLM extraction/structuring/judge/OCR.
+# Per-task routing: free-tier defaults; override any task via env (docs/phase-2-design.md).
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-OPENROUTER_MODEL_METADATA = os.getenv("OPENROUTER_MODEL_METADATA", "google/gemini-2.5-flash")
-OPENROUTER_MODEL_STRUCTURE = os.getenv("OPENROUTER_MODEL_STRUCTURE", "google/gemini-2.5-flash")
-OPENROUTER_MODEL_JUDGE = os.getenv("OPENROUTER_MODEL_JUDGE", "anthropic/claude-sonnet-4.5")
+OPENROUTER_MODEL_METADATA = os.getenv(
+    "OPENROUTER_MODEL_METADATA", "qwen/qwen3.8-27b:free"
+)
+OPENROUTER_MODEL_STRUCTURE = os.getenv(
+    "OPENROUTER_MODEL_STRUCTURE", "qwen/qwen3.8-27b:free"
+)
+OPENROUTER_MODEL_OCR = os.getenv(
+    "OPENROUTER_MODEL_OCR", "google/gemma-4-31b-it:free"
+)
+OPENROUTER_MODEL_JUDGE = os.getenv(
+    "OPENROUTER_MODEL_JUDGE", "qwen/qwen3.8-27b:free"
+)
 
 LOGIN_URL = "/accounts/login/"

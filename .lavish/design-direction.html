@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>azmy — visual design direction</title>
+<script type="application/json" data-lavish-revisions>
+[{ "id": "r1", "label": "Round 1", "timestamp": "2026-09-27T00:30:00Z", "summary": "Agent console: quiet sleeping state instead of busy fake traffic (no such traffic yet); Q3 default changed to 'hidden until real traffic'" }]
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -212,7 +215,6 @@ Annotate anything, or answer the four questions at the bottom.</p>
         <div style="margin-top:.5rem; display:flex; gap:.5rem; align-items:center">
           <span class="pill green"><i class="dot"></i>published</span>
           <span class="mono" style="font-size:.72rem; color:var(--ink-3)">178 Positionen · KG 390</span>
-          <span class="pill agent" style="margin-left:auto"><i class="dot"></i>3 agents queried</span>
         </div>
       </div>
       <div class="proj-card">
@@ -226,17 +228,15 @@ Annotate anything, or answer the four questions at the bottom.</p>
         </div>
       </div>
     </div>
-    <div class="console">
-      <h4><span class="dot"></span> Agent activity · live</h4>
+    <div class="console" data-lavish-revision="r1">
+      <h4><span class="dot" style="background:#475569; animation:none"></span> Agent activity</h4>
       <div class="feed">
-        <div class="row"><span class="t">12:04:11</span><span class="a">drywall-gmbh-bot</span><span class="x">get_boq(FMP6, gewerk=11)</span></div>
-        <div class="row"><span class="t">12:03:58</span><span class="a">bedia-agent</span><span class="x">ask_question(03.01.0290, "Sturzprofil inkl.?")</span></div>
-        <div class="row"><span class="t">12:03:31</span><span class="a">malerwerk-ki</span><span class="x">search_projects(trade=Trockenbau, plz=10*)</span></div>
-        <div class="row"><span class="t">12:02:47</span><span class="a">drywall-gmbh-bot</span><span class="x ok">submit_bid(178 items) → accepted</span></div>
-        <div class="row"><span class="t">12:01:02</span><span class="a">system</span><span class="x">project.published → 14 agents notified</span></div>
+        <div class="row"><span class="t">——</span><span class="x" style="color:#64748b">No agent traffic yet.</span></div>
+        <div class="row"><span class="t">——</span><span class="x" style="color:#64748b">This console lights up when the first agent connects.</span></div>
+        <div class="row"><span class="t">now</span><span class="a">system</span><span class="x">listening on /mcp · 0 agents connected</span></div>
       </div>
       <div class="mcp-card">
-        <b>mcp endpoint</b><br>
+        <b>mcp endpoint</b> <span style="color:#475569">(phase 3)</span><br>
         <span class="g">https://azmy.raenterprises.de/mcp</span><br>
         tools: search_projects · get_boq · ask_question · submit_bid
       </div>
@@ -358,9 +358,9 @@ Annotate anything, or answer the four questions at the bottom.</p>
   <h3>3 · Agent activity panel on dashboard</h3>
   <div class="note">It is the brand — but it can shout or whisper.</div>
   <form onsubmit="event.preventDefault(); const c = new FormData(event.currentTarget).get('panel'); if (c) window.lavish.queuePrompt('Agent panel: ' + c, { tag: 'choice', text: 'Agent panel: ' + c, element: event.currentTarget, data: { question: 'agent-panel', answer: c } });">
-    <label class="opt"><input type="radio" name="panel" value="always" checked> Always visible (shown)</label>
+    <label class="opt"><input type="radio" name="panel" value="always"> Always visible (shown)</label>
     <label class="opt"><input type="radio" name="panel" value="tab"> Own tab "Agents"</label>
-    <label class="opt"><input type="radio" name="panel" value="hidden"> Hidden until real traffic</label>
+    <label class="opt"><input type="radio" name="panel" value="hidden" checked> Hidden until real traffic</label>
     <button class="btn primary" type="submit">Queue answer</button>
   </form>
 </div>
