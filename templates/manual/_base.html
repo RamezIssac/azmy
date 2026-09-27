@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div style="max-width:960px; margin:0 auto">
+  <div style="display:flex; gap:1.4rem; align-items:baseline; flex-wrap:wrap; margin-bottom:1.2rem; font-size:.85rem">
+    <a href="{% url 'manual' %}" style="font-weight:700; color:var(--ink)">Manual</a>
+    <a href="{% url 'manual_projekt' %}">1 · Projekt anlegen</a>
+    <a href="{% url 'manual_bidding' %}">2 · Bieten &amp; Vergleichen</a>
+    <a href="{% url 'manual_sprint' %}">3 · Nächster Sprint</a>
+  </div>
+  {% block manual %}{% endblock %}
+  <div style="display:flex; justify-content:space-between; margin-top:2.5rem; font-size:.85rem">
+    <span>{% block prev %}{% endblock %}</span>
+    <span>{% block next %}{% endblock %}</span>
+  </div>
+</div>
+{% endblock %}

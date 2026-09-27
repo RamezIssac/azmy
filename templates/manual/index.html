@@ -1,0 +1,55 @@
+{% extends "manual/_base.html" %}
+{% load static %}
+{% block title %}Manual — azmy{% endblock %}
+{% block manual %}
+<h1 style="font-size:1.6rem; margin:0 0 .3rem">azmy — Manual für Ideenpartner</h1>
+<p class="muted">Ausschreibungs-PDFs rein → strukturierte, prüfbare Leistungsverzeichnisse raus →
+Bieter bieten direkt darauf. Diese Seiten zeigen den Stand und den kompletten Ablauf am echten Projekt.</p>
+
+<div class="card" style="margin-top:1.2rem">
+  <strong class="small">Der Fluss in einer Zeile</strong>
+  <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; margin-top:.6rem; font-size:.82rem">
+    <span class="pill zinc">PDF-Dokumente</span> →
+    <span class="pill amber">Extraktion + KI</span> →
+    <span class="pill blue">Mensch prüft</span> →
+    <span class="pill green">Veröffentlicht</span> →
+    <span class="pill agent">Bieter bieten</span> →
+    <span class="pill green">Bietervergleich</span>
+  </div>
+</div>
+
+<h2 style="font-size:1.05rem; margin-top:2rem">Was schon läuft</h2>
+<table class="tbl">
+  <thead><tr><th>Phase</th><th>Was</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td class="mono small">1</td><td class="small">PDF → strukturiertes LV (178 Positionen am goldenen Dokument), Review-Oberfläche mit Quellenbeleg pro Position, menschliche Freigabe, öffentlicher Link + JSON-API, GAEB-Import</td><td><span class="pill green"><i class="dot"></i>live</span></td></tr>
+    <tr><td class="mono small">2</td><td class="small">Scans per Vision-OCR lesbar, Auto-Erkennung der Dokumenttypen, KI-Kurzbrief je Dokument, Bieter-Portal + Angebotsabgabe im Web, automatischer Bietervergleich, neues Design</td><td><span class="pill green"><i class="dot"></i>live</span></td></tr>
+    <tr><td class="mono small">3</td><td class="small">Agenten-Schnittstelle (MCP + API-Keys), Fragen an die Unterlagen mit Seitenzitat (ask_question), Bieter-Selbstregistrierung, Nachtrags-Diffing</td><td><span class="pill amber"><i class="dot"></i>nächster Sprint</span></td></tr>
+  </tbody>
+</table>
+
+<h2 style="font-size:1.05rem; margin-top:2rem">Das Beispiel ist echt</h2>
+<div class="card">
+  <div class="small">Alle Screenshots stammen aus der echten, öffentlichen Ausschreibung
+  <strong>„Haus der Gesundheit“, Etkar-André-Str. 8</strong> (Bezirksamt Marzahn-Hellersdorf) —
+  <a href="https://www.berlin.de/ba-marzahn-hellersdorf/aktuelles/ausschreibungen/artikel.1688501.php" target="_blank">Original auf berlin.de ↗</a>,
+  und aus einem echten 90-seitigen LV Trockenbau (178 Positionen).</div>
+</div>
+
+<h2 style="font-size:1.05rem; margin-top:2rem">Leseführer</h2>
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:.9rem">
+  <a class="card" style="text-decoration:none; color:var(--ink)" href="{% url 'manual_projekt' %}">
+    <strong>1 · Projekt anlegen</strong>
+    <div class="muted small">Von berlin.de zum veröffentlichten Projekt: Upload, Erkennung, Prüfung, Freigabe.</div>
+  </a>
+  <a class="card" style="text-decoration:none; color:var(--ink)" href="{% url 'manual_bidding' %}">
+    <strong>2 · Bieten &amp; Vergleichen</strong>
+    <div class="muted small">Bieterkonto, Angebot im Editor, automatischer Bietervergleich.</div>
+  </a>
+  <a class="card" style="text-decoration:none; color:var(--ink)" href="{% url 'manual_sprint' %}">
+    <strong>3 · Nächster Sprint</strong>
+    <div class="muted small">Agenten, Fragen an Dokumente, Selbst-Onboarding — und was Sie schon jetzt fahren können.</div>
+  </a>
+</div>
+{% endblock %}
+{% block next %}<a href="{% url 'manual_projekt' %}">1 · Projekt anlegen →</a>{% endblock %}

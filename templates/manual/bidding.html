@@ -1,0 +1,26 @@
+{% extends "manual/_base.html" %}
+{% load static %}
+{% block title %}Bieten & Vergleichen — azmy Manual{% endblock %}
+{% block manual %}
+<h1 style="font-size:1.35rem; margin:0 0 .3rem">2 · Bieten &amp; Vergleichen</h1>
+<p class="muted small">Bieter bekommen ein Konto, sehen veröffentlichte Projekte und bepreisen Positionen direkt am strukturierten LV.</p>
+
+<h2 style="font-size:1rem; margin-top:1.6rem">Schritt 1 — Bieterkonto</h2>
+<p class="small">Wir legen das Profil an (Firma, Gewerk, Region) — der Bieter bekommt Login und sieht sofort das Portal. Kein Selbst-Registrieren, bewusst: erst onboarden wir von Hand.</p>
+<img src="{% static 'manual/05_portal.png' %}" alt="Bieterportal" style="border:1px solid var(--hairline); border-radius:var(--r-md); max-width:100%">
+
+<h2 style="font-size:1rem; margin-top:1.6rem">Schritt 2 — Angebot erstellen</h2>
+<p class="small">Jede Position: ein Preisfeld. Deutsche Kommaschreibweise, Entwurf speichern, endgültig abgeben. Leer heißt „bieten wir nicht“ — das wird später sichtbar.</p>
+<img src="{% static 'manual/06_bid_editor.png' %}" alt="Angebotseditor" style="border:1px solid var(--hairline); border-radius:var(--r-md); max-width:100%">
+
+<h2 style="font-size:1rem; margin-top:1.6rem">Schritt 3 — Der Bietervergleich macht den Rest</h2>
+<p class="small">Was heute Excel-Chaos ist, ist hier ein Bild auf einen Blick: Lücken rot, Bestpreise grün, Ausreißer markiert, Summen oben.</p>
+<img src="{% static 'manual/04_leveling.png' %}" alt="Bietervergleich" style="border:1px solid var(--hairline); border-radius:var(--r-md); max-width:100%">
+
+<div class="card" style="margin-top:1.2rem">
+  <div class="small"><strong>Warum das automatisch geht:</strong> alle Gebote referenzieren dieselben strukturierten Positionen (OZ).
+  Kein Format-Ping-Pong, kein „welche Position meint der jetzt?“ — deshalb ist der Vergleich eine Ansicht, kein Projekt.</div>
+</div>
+{% endblock %}
+{% block prev %}<a href="{% url 'manual_projekt' %}">← 1 · Projekt anlegen</a>{% endblock %}
+{% block next %}<a href="{% url 'manual_sprint' %}">3 · Nächster Sprint →</a>{% endblock %}

@@ -102,6 +102,7 @@
   {% if user.is_authenticated %}
     {% if user.is_staff %}<a class="nl" href="{% url 'projects:dashboard' %}">Projekte</a>{% endif %}
     <a class="nl" href="{% url 'bidding:portal' %}">Portal</a>
+    <a class="nl" href="{% url 'manual' %}">Manual</a>
     <span class="spacer"></span>
     <span class="pill zinc" title="Agent substrate kommt in Phase 3"><i class="dot" style="background:#9ca3af"></i>0 agents · phase 3</span>
     <small>{{ user.email }}</small>

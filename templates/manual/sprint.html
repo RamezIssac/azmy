@@ -1,0 +1,58 @@
+{% extends "manual/_base.html" %}
+{% load static %}
+{% block title %}Nächster Sprint — azmy Manual{% endblock %}
+{% block manual %}
+<h1 style="font-size:1.35rem; margin:0 0 .3rem">3 · Nächster Sprint</h1>
+<p class="muted small">Phase 3 macht aus dem Werkzeug den Marktplatz: Bieter-Agenten schließen an, und die Unterlagen werden befragbar.</p>
+
+<table class="tbl" style="margin-top:1.2rem">
+  <thead><tr><th>Was</th><th>Kurz</th><th>Warum es zählt</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="small"><strong>Agenten-Schnittstelle (MCP + API-Keys)</strong></td>
+      <td class="small">Bieter-Software liest Projekte und gibt Angebote maschinell ab.</td>
+      <td class="small">Das Alleinstellungsmerkmal: wir sind die erste maschinenlesbare Ausschreibungs-Schiene.</td>
+    </tr>
+    <tr>
+      <td class="small"><strong>ask_question</strong></td>
+      <td class="small">Fragen an ALLE Projektdokumente (inkl. OCR-Text), Antwort mit Seitenzitat.</td>
+      <td class="small">„Ist der Sturz in 03.01.310 inklusive?“ — beantwortet in Sekunden, belegt auf der Seite.</td>
+    </tr>
+    <tr>
+      <td class="small"><strong>Veröffentlichen ohne LV</strong></td>
+      <td class="small">Interessenbekundungen (wie Haus der Gesundheit) direkt teilbar machen.</td>
+      <td class="small">Frühe Projektphasen werden sichtbar, bevor ein LV existiert.</td>
+    </tr>
+    <tr>
+      <td class="small"><strong>Bieter-Onboarding + E-Mail</strong></td>
+      <td class="small">Selbstregistrierung, Einladungen, Abgabe-Bestätigungen (SMTP).</td>
+      <td class="small">Skaliert jenseits von Hand-Onboarding.</td>
+    </tr>
+    <tr>
+      <td class="small"><strong>Nachträge als Versionen mit Diff</strong></td>
+      <td class="small">Neue Dokument-Sets vergleichen, Änderungen an Bieter melden.</td>
+      <td class="small">Der Alltag jeder Ausschreibung — heute ein Telefonat, morgen ein Feed-Eintrag.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 style="font-size:1rem; margin-top:1.8rem">Was Sie heute schon fahren können</h2>
+<table class="tbl">
+  <tbody>
+    <tr><td class="small">Neues Projekt anlegen + beliebige PDFs hochladen</td><td><span class="pill green"><i class="dot"></i>geht</span></td></tr>
+    <tr><td class="small">LV prüfen, korrigieren, freigeben, veröffentlichen</td><td><span class="pill green"><i class="dot"></i>geht</span></td></tr>
+    <tr><td class="small">Bieter anlegen lassen, Angebote einholen, vergleichen</td><td><span class="pill green"><i class="dot"></i>geht</span></td></tr>
+    <tr><td class="small">Nächste Ausschreibung von einem Vergabeportal komplett durchziehen</td><td><span class="pill green"><i class="dot"></i>geht</span></td></tr>
+    <tr><td class="small">Agenten anschließen</td><td><span class="pill amber"><i class="dot"></i>Sprint 3</span></td></tr>
+  </tbody>
+</table>
+
+<div class="console" style="margin-top:1.4rem">
+  <div class="h">azmy — die Idee in einem Satz</div>
+  <span class="dim"># Nicht „KI liest Bau-PDFs“. Sondern:</span><br>
+  die Schiene, auf der Bau-Ausschreibungen maschinenlesbar werden —
+  <span class="g">und Maschinen darauf bieten.</span>
+</div>
+{% endblock %}
+{% block prev %}<a href="{% url 'manual_bidding' %}">← 2 · Bieten &amp; Vergleichen</a>{% endblock %}
+{% block next %}<a href="{% url 'manual' %}">Zur Übersicht</a>{% endblock %}

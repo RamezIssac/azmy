@@ -1,0 +1,44 @@
+{% extends "manual/_base.html" %}
+{% load static %}
+{% block title %}Projekt anlegen — azmy Manual{% endblock %}
+{% block manual %}
+<h1 style="font-size:1.35rem; margin:0 0 .3rem">1 · Projekt anlegen &amp; Dokumente verstehen</h1>
+<p class="muted small">Vom öffentlichen Vergabeportal zum geprüften, veröffentlichten Projekt. Fünf Schritte, gezeigt am echten Fall.</p>
+
+<h2 style="font-size:1rem; margin-top:1.6rem">Schritt 0 — Die Quelle</h2>
+<p class="small">Das Bezirksamt schreibt aus: Erbbaurecht am „Haus der Gesundheit“. Vier PDFs hängen an der Bekanntmachung.</p>
+<figure style="margin:.6rem 0">
+  <img src="{% static 'manual/00_quelle_berlin.png' %}" alt="berlin.de Ausschreibung" style="border:1px solid var(--hairline); border-radius:var(--r-md); max-width:100%">
+  <figcaption class="muted small">berlin.de, Bezirksamt Marzahn-Hellersdorf — <a href="https://www.berlin.de/ba-marzahn-hellersdorf/aktuelles/ausschreibungen/artikel.1688501.php" target="_blank">Original ↗</a></figcaption>
+</figure>
+
+<h2 style="font-size:1rem; margin-top:1.6rem">Schritt 1 — Projekt anlegen</h2>
+<p class="small">Drei Felder. Mehr braucht es nicht — den Rest liest die KI aus den Dokumenten.</p>
+<img src="{% static 'manual/08_projekt_neu.png' %}" alt="Neues Projekt" style="border:1px solid var(--hairline); border-radius:var(--r-md); max-width:100%">
+
+<h2 style="font-size:1rem; margin-top:1.6rem">Schritt 2 — Hochladen (Typ: „Automatisch erkennen“)</h2>
+<p class="small">Alle vier PDFs auf einmal rein. Kein Sortieren, kein Benennen, kein Typenraten.</p>
+<img src="{% static 'manual/09_detail_hdgg.png' %}" alt="Projekt mit Dokumenten" style="border:1px solid var(--hairline); border-radius:var(--r-md); max-width:100%">
+
+<h2 style="font-size:1rem; margin-top:1.6rem">Schritt 3 — Was azmy daraus macht</h2>
+<table class="tbl">
+  <thead><tr><th>Datei</th><th>Erkannt als</th><th>Ergebnis</th></tr></thead>
+  <tbody>
+    <tr><td class="mono small">interessenbekundung….pdf</td><td class="small">Verfahrens-Dokument</td><td class="small">Kurzbrief + Fristen extrahiert</td></tr>
+    <tr><td class="mono small">anlage-1…grundrisse…pdf</td><td class="small">Plan + Baubeschreibung</td><td class="small">Eckdaten verstanden, Pläne abgelegt</td></tr>
+    <tr><td class="mono small">anlage-2…energieausweis…pdf</td><td class="small">Energieausweis <span class="pill agent" style="font-size:.6rem">OCR</span></td><td class="small">Scan (2009!) per Vision-KI gelesen: 8.441 m², 142,8 kWh/(m²·a)</td></tr>
+    <tr><td class="mono small">anlage-3…brandschutz…pdf (65 S.)</td><td class="small">Bericht (Scan)</td><td class="small">läuft durch OCR-Warteschlange</td></tr>
+    <tr><td class="mono small">trockenbauarbeiten.pdf (90 S.)</td><td class="small">Leistungsverzeichnis</td><td class="small"><strong>178 Positionen</strong> mit Menge, Einheit, OZ + Seitennachweis</td></tr>
+  </tbody>
+</table>
+
+<h2 style="font-size:1rem; margin-top:1.6rem">Schritt 4 — Prüfen (Mensch bleibt Herr der Daten)</h2>
+<p class="small">Jede Position zeigt ihre Quellseite. Ein zweites KI-Modell prüft gegen („Judge“). Erst <strong>FREIGEBEN</strong> macht es offiziell.</p>
+<img src="{% static 'manual/03_review_workbench.png' %}" alt="Review" style="border:1px solid var(--hairline); border-radius:var(--r-md); max-width:100%">
+
+<h2 style="font-size:1rem; margin-top:1.6rem">Schritt 5 — Veröffentlichen</h2>
+<p class="small">Ein Klick → teilbarer Link + JSON-API. So sieht es die Außenwelt:</p>
+<img src="{% static 'manual/07_public.png' %}" alt="Öffentliche Ausschreibung" style="border:1px solid var(--hairline); border-radius:var(--r-md); max-width:100%">
+{% endblock %}
+{% block prev %}<a href="{% url 'manual' %}">← Übersicht</a>{% endblock %}
+{% block next %}<a href="{% url 'manual_bidding' %}">2 · Bieten &amp; Vergleichen →</a>{% endblock %}
