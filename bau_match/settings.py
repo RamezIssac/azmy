@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "core",
     "projects",
     "extraction",
+    "bidding",
 ]
 
 MIDDLEWARE = [
@@ -163,10 +164,10 @@ if REDIS_URL:
             "LOCATION": REDIS_URL,
         }
     }
-    RQ_QUEUES = {"default": {"URL": REDIS_URL, "DEFAULT_TIMEOUT": 900}}
+    RQ_QUEUES = {"default": {"URL": REDIS_URL, "DEFAULT_TIMEOUT": 3600}}
 else:
     CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
-    RQ_QUEUES = {"default": {"URL": "redis://localhost:6379/0", "DEFAULT_TIMEOUT": 900}}
+    RQ_QUEUES = {"default": {"URL": "redis://localhost:6379/0", "DEFAULT_TIMEOUT": 3600}}
 
 RQ_ENABLED = bool(REDIS_URL) and os.getenv("RQ_ENABLED", "True") == "True"
 
@@ -175,16 +176,18 @@ RQ_ENABLED = bool(REDIS_URL) and os.getenv("RQ_ENABLED", "True") == "True"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
 OPENROUTER_MODEL_METADATA = os.getenv(
-    "OPENROUTER_MODEL_METADATA", "qwen/qwen3.8-27b:free"
+    "OPENROUTER_MODEL_METADATA", "qwen/qwen3.8-27b:free,google/gemini-2.5-flash"
 )
 OPENROUTER_MODEL_STRUCTURE = os.getenv(
-    "OPENROUTER_MODEL_STRUCTURE", "qwen/qwen3.8-27b:free"
+    "OPENROUTER_MODEL_STRUCTURE", "qwen/qwen3.8-27b:free,google/gemini-2.5-flash"
 )
 OPENROUTER_MODEL_OCR = os.getenv(
-    "OPENROUTER_MODEL_OCR", "google/gemma-4-31b-it:free"
+    "OPENROUTER_MODEL_OCR", "google/gemma-4-31b-it:free,google/gemini-2.5-flash"
 )
 OPENROUTER_MODEL_JUDGE = os.getenv(
-    "OPENROUTER_MODEL_JUDGE", "qwen/qwen3.8-27b:free"
+    "OPENROUTER_MODEL_JUDGE", "qwen/qwen3.8-27b:free,google/gemini-2.5-flash"
 )
+# vision OCR: max pages per document (scans beyond this go to manual queue)
+OPENROUTER_OCR_MAX_PAGES = int(os.getenv("OPENROUTER_OCR_MAX_PAGES", "80"))
 
 LOGIN_URL = "/accounts/login/"

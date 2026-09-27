@@ -121,6 +121,7 @@ class DocumentSet(models.Model):
 
 class Document(models.Model):
     class DocType(models.TextChoices):
+        AUTO = "auto", _("Auto-detect")
         LV = "lv", _("Leistungsverzeichnis (BOQ)")
         GAEB = "gaeb", _("GAEB file")
         PLAN = "plan", _("Plan / drawing")
@@ -141,7 +142,7 @@ class Document(models.Model):
     file = models.FileField(upload_to=document_upload_path, storage=private_storage)
     original_filename = models.CharField(max_length=255)
     doc_type = models.CharField(
-        max_length=10, choices=DocType.choices, default=DocType.LV
+        max_length=10, choices=DocType.choices, default=DocType.AUTO
     )
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.UPLOADED

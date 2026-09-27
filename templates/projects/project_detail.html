@@ -1,85 +1,98 @@
 {% extends "base.html" %}
 {% block title %}{{ project.name }}{% endblock %}
 {% block content %}
-{% if processing %}
-{# poll while any extraction runs, then reload the page #}
-<div hx-get="{% url 'projects:detail' project.slug %}" hx-trigger="every 4s" hx-swap="none"></div>
-<meta http-equiv="refresh" content="4">
-{% endif %}
-<div class="d-flex justify-content-between align-items-start mb-3">
+{% if processing %}<meta http-equiv="refresh" content="4">{% endif %}
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; margin-bottom:1rem">
   <div>
-    <h1 class="h4 mb-1">{{ project.name }}</h1>
-    <div class="text-muted small">
+    <h1 style="font-size:1.25rem; margin:0 0 .2rem">{{ project.name }}</h1>
+    <div class="muted small">
       {{ project.client_name }} · {{ project.address }}
-      {% if project.bid_deadline %} · Angebotsfrist: {{ project.bid_deadline|date:"d.m.Y H:i" }}{% endif %}
+      {% if project.bid_deadline %} · <strong style="color:var(--warn)">Angebotsfrist: {{ project.bid_deadline|date:"d.m.Y H:i" }}</strong>{% endif %}
     </div>
   </div>
-  <div>
+  <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap">
     {% if project.is_published %}
-      <span class="badge bg-success">veröffentlicht</span>
-      <a class="btn btn-sm btn-outline-primary" href="{{ project.get_public_url }}">Öffentliche Ansicht</a>
-      <a class="btn btn-sm btn-outline-secondary" href="{% url 'projects:public_api' project.public_token %}">API JSON</a>
-      <form method="post" action="{% url 'projects:unpublish' project.slug %}" class="d-inline">{% csrf_token %}
-        <button class="btn btn-sm btn-outline-danger">Zurückziehen</button>
+      <span class="pill green"><i class="dot"></i>veröffentlicht</span>
+      <a class="btn sm" href="{{ project.get_public_url }}" target="_blank">Öffentlich ↗</a>
+      <a class="btn sm" href="{% url 'projects:public_api' project.public_token %}" target="_blank">API JSON</a>
+      <a class="btn sm primary" href="{% url 'bidding:leveling' project.slug %}">Bietervergleich</a>
+      <form method="post" action="{% url 'projects:unpublish' project.slug %}" style="display:inline">{% csrf_token %}
+        <button class="btn sm">Zurückziehen</button>
       </form>
     {% else %}
-      <form method="post" action="{% url 'projects:publish' project.slug %}" class="d-inline">{% csrf_token %}
-        <button class="btn btn-sm btn-success">Veröffentlichen</button>
+      <form method="post" action="{% url 'projects:publish' project.slug %}" style="display:inline">{% csrf_token %}
+        <button class="btn sm success">Veröffentlichen</button>
       </form>
     {% endif %}
   </div>
 </div>
 
-<div class="card mb-4">
-  <div class="card-header">Dokumente hochladen (neues Set)</div>
-  <div class="card-body">
-    <form method="post" enctype="multipart/form-data" action="{% url 'projects:upload' project.slug %}" class="row g-2 align-items-end">
-      {% csrf_token %}
-      <div class="col-md-5">
-        <label class="form-label">Dateien (PDF / GAEB XML)</label>
-        <input class="form-control" type="file" name="files" multiple required>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Dokumenttyp</label>
-        <select class="form-select" name="doc_type">
-          <option value="lv">Leistungsverzeichnis (BOQ)</option>
-          <option value="gaeb">GAEB-Datei</option>
-          <option value="plan">Plan / Zeichnung</option>
-          <option value="spec">Spec / Baubeschreibung</option>
-          <option value="other">Sonstiges</option>
-        </select>
-      </div>
-      <div class="col-md-3"><button class="btn btn-primary w-100">Hochladen</button></div>
-    </form>
-  </div>
+<div class="card">
+  <strong class="small">Dokumente hochladen</strong> <span class="muted small">(neues versioniertes Set; Typ wird erkannt)</span>
+  <form method="post" enctype="multipart/form-data" action="{% url 'projects:upload' project.slug %}"
+        style="display:grid; grid-template-columns:1fr 220px auto; gap:.7rem; align-items:end; margin-top:.6rem">
+    {% csrf_token %}
+    <div>
+      <label class="fl">Dateien (PDF / GAEB XML)</label>
+      <input type="file" name="files" multiple required>
+    </div>
+    <div>
+      <label class="fl">Dokumenttyp</label>
+      <select name="doc_type">
+        <option value="auto" selected>Automatisch erkennen</option>
+        <option value="lv">Leistungsverzeichnis (BOQ)</option>
+        <option value="gaeb">GAEB-Datei</option>
+        <option value="plan">Plan / Zeichnung</option>
+        <option value="spec">Spec / Baubeschreibung</option>
+        <option value="other">Sonstiges</option>
+      </select>
+    </div>
+    <button class="btn primary">Hochladen</button>
+  </form>
 </div>
 
 {% for set in sets %}
-<div class="card mb-3">
-  <div class="card-header"><strong>Set v{{ set.version }}</strong> <span class="text-muted">{{ set.created_at|date:"d.m.Y H:i" }} · {{ set.uploaded_by.email }}</span></div>
-  <table class="table table-sm mb-0 align-middle">
-    <thead><tr><th>Datei</th><th>Typ</th><th>Status</th><th>Seiten</th><th class="text-end">Aktionen</th></tr></thead>
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:.6rem 1rem; border-bottom:1px solid var(--hairline); background:#fbfbfa" class="small">
+    <strong>Set v{{ set.version }}</strong>
+    <span class="muted mono" style="font-size:.7rem">{{ set.created_at|date:"d.m.Y H:i" }} · {{ set.uploaded_by.email }}{% if set.label %} · {{ set.label }}{% endif %}</span>
+  </div>
+  <table class="tbl">
+    <thead><tr><th>Datei</th><th>Typ</th><th>Status</th><th>Seiten</th><th style="text-align:right">Aktionen</th></tr></thead>
     <tbody>
       {% for doc in set.documents.all %}
       <tr>
         <td class="mono small">{{ doc.original_filename }}</td>
-        <td>{{ doc.get_doc_type_display }}</td>
         <td>
-          <span class="badge {% if doc.status == 'approved' %}bg-success{% elif doc.status == 'failed' or doc.status == 'manual_queue' %}bg-danger{% elif doc.status == 'extracted' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
-            {{ doc.get_status_display }}
-          </span>
-          {% if doc.error_message %}<div class="small text-danger">{{ doc.error_message }}</div>{% endif %}
+          <span class="pill zinc">{{ doc.get_doc_type_display }}</span>
+          {% if doc.extraction_report.document_intel.document_kind %}
+            <div class="small muted" style="margin-top:.25rem">{{ doc.extraction_report.document_intel.document_kind }}</div>
+          {% endif %}
         </td>
-        <td>{{ doc.page_count|default:"—" }}</td>
-        <td class="text-end">
-          <a class="btn btn-sm btn-outline-secondary" href="{{ doc.file.url }}" target="_blank">Öffnen</a>
-          {% if doc.status == 'uploaded' or doc.status == 'failed' %}
-            <form method="post" action="{% url 'projects:process_document' doc.pk %}" class="d-inline">{% csrf_token %}
-              <button class="btn btn-sm btn-outline-primary">Extrahieren</button>
+        <td>
+          {% if doc.status == 'approved' %}<span class="pill green"><i class="dot"></i>approved</span>
+          {% elif doc.status == 'extracted' %}<span class="pill blue"><i class="dot"></i>extracted</span>
+          {% elif doc.status == 'processing' or doc.status == 'uploaded' %}<span class="pill amber"><i class="dot"></i>{{ doc.get_status_display }}</span>
+          {% elif doc.status == 'manual_queue' %}<span class="pill red"><i class="dot"></i>manual queue</span>
+          {% elif doc.status == 'failed' %}<span class="pill red"><i class="dot"></i>failed</span>
+          {% else %}<span class="pill zinc">{{ doc.get_status_display }}</span>{% endif %}
+          {% if doc.extraction_report.ocr %}<span class="pill agent" title="Vision-OCR angewendet">OCR</span>{% endif %}
+          {% if doc.error_message %}<div class="small" style="color:var(--bad)">{{ doc.error_message }}</div>{% endif %}
+          {% if doc.extraction_report.reason %}<div class="small muted">{{ doc.extraction_report.reason }}</div>{% endif %}
+          {% if doc.extraction_report.document_intel.summary %}
+            <div class="small muted" style="max-width:46ch">{{ doc.extraction_report.document_intel.summary }}</div>
+          {% endif %}
+        </td>
+        <td class="mono small">{{ doc.page_count|default:"—" }}</td>
+        <td style="text-align:right; white-space:nowrap">
+          <a class="btn sm" href="{{ doc.file.url }}" target="_blank">Öffnen</a>
+          {% if doc.status == 'uploaded' or doc.status == 'failed' or doc.status == 'manual_queue' %}
+            <form method="post" action="{% url 'projects:process_document' doc.pk %}" style="display:inline">{% csrf_token %}
+              <button class="btn sm primary">Extrahieren</button>
             </form>
           {% endif %}
           {% if doc.lv %}
-            <a class="btn btn-sm btn-outline-dark" href="{% url 'extraction:review' doc.pk %}">Prüfen ({{ doc.lv.item_count }} Pos.)</a>
+            <a class="btn sm" style="border-color:var(--accent); color:var(--accent)" href="{% url 'extraction:review' doc.pk %}">Prüfen ({{ doc.lv.item_count }} Pos.)</a>
           {% endif %}
         </td>
       </tr>
@@ -88,6 +101,6 @@
   </table>
 </div>
 {% empty %}
-<div class="alert alert-info">Noch keine Dokumente.</div>
+<div class="card"><span class="muted">Noch keine Dokumente.</span></div>
 {% endfor %}
 {% endblock %}

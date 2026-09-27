@@ -82,18 +82,15 @@ def upload_documents(request, slug):
     if not files:
         messages.error(request, "Keine Dateien ausgewählt.")
         return redirect(project)
-    doc_type = request.POST.get("doc_type", Document.DocType.LV)
+    doc_type = request.POST.get("doc_type", Document.DocType.AUTO)
     doc_set = DocumentSet.objects.create(project=project, uploaded_by=request.user)
     for f in files:
-        guessed = doc_type
-        name = f.name.lower()
-        if name.endswith((".x83", ".x31", ".xml")):
-            guessed = Document.DocType.GAEB
+        # classification happens in the pipeline (classify_document)
         Document.objects.create(
             document_set=doc_set,
             file=f,
             original_filename=f.name,
-            doc_type=guessed,
+            doc_type=doc_type,
         )
     messages.success(
         request, f"{len(files)} Datei(en) als Set v{doc_set.version} hochgeladen."

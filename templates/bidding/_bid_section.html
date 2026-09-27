@@ -1,0 +1,31 @@
+<div style="margin-bottom:.6rem">
+  <div style="background:#f4f4f5; border-radius:var(--r-sm); padding:.3rem .55rem; font-weight:600; font-size:.78rem; margin-bottom:.2rem">
+    {{ section.title }}
+  </div>
+  <table class="tbl">
+    <tbody>
+      {% for row in section.items %}
+      <tr>
+        <td class="mono small" style="width:7rem; white-space:nowrap; color:var(--accent); font-weight:600">{{ row.item.oz }}</td>
+        <td class="small">{{ row.item.short_text }}</td>
+        <td class="mono small muted" style="width:7rem; text-align:right">{{ row.item.menge|floatformat:"-2" }} {{ row.item.einheit }}</td>
+        <td style="width:9rem">
+          <input type="text" name="price_{{ row.item.pk }}" inputmode="decimal"
+                 value="{% if row.bid_item.price is not None %}{{ row.bid_item.price }}{% endif %}"
+                 placeholder="EP €" style="padding:.3rem .5rem; font-size:.8rem; text-align:right">
+        </td>
+        <td style="width:11rem">
+          <input type="text" name="note_{{ row.item.pk }}"
+                 value="{{ row.bid_item.note|default:'' }}" placeholder="Notiz"
+                 style="padding:.3rem .5rem; font-size:.8rem">
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div style="margin-left:.9rem">
+    {% for child in section.children %}
+      {% include "bidding/_bid_section.html" with section=child %}
+    {% endfor %}
+  </div>
+</div>

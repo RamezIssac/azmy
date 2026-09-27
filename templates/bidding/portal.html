@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Portal — {{ provider.company }}{% endblock %}
+{% block content %}
+<h1 style="font-size:1.4rem; margin:0 0 .2rem">Angebotsportal</h1>
+<div class="muted small" style="margin-bottom:1.2rem">{{ provider.company }}{% if provider.trade_codes %} · {{ provider.trade_codes }}{% endif %}</div>
+
+{% for project, bid in rows %}
+<div class="card">
+  <div style="display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; flex-wrap:wrap">
+    <div>
+      <strong><a href="{{ project.get_public_url }}" style="color:var(--ink)">{{ project.name }}</a></strong>
+      <div class="muted small">{{ project.client_name }} · {{ project.address }}</div>
+      {% if project.bid_deadline %}
+      <div class="small" style="color:var(--warn); font-weight:600; margin-top:.2rem">Angebotsfrist: {{ project.bid_deadline|date:"d.m.Y H:i" }}</div>
+      {% endif %}
+    </div>
+    <div>
+      {% if bid and bid.status == 'submitted' %}
+        <span class="pill green"><i class="dot"></i>abgegeben · {{ bid.submitted_at|date:"d.m.Y H:i" }}</span>
+      {% elif bid %}
+        <a class="btn primary" href="{% url 'bidding:bid_editor' project.slug %}">Entwurf fortsetzen ({{ bid.priced_count }} bepreist)</a>
+      {% else %}
+        <a class="btn primary" href="{% url 'bidding:bid_editor' project.slug %}">Angebot erstellen</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% empty %}
+<div class="card"><span class="muted">Aktuell keine veröffentlichten Ausschreibungen.</span></div>
+{% endfor %}
+{% endblock %}

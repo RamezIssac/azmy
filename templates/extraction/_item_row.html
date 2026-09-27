@@ -1,24 +1,25 @@
-<div class="item-row card card-body py-1 px-2 mb-1 {% if item.is_reviewed %}reviewed{% endif %}" id="item-{{ item.pk }}">
-  <div class="d-flex justify-content-between align-items-start">
-    <div>
-      <span class="mono small fw-bold">{{ item.oz }}</span>
+<div class="card flat {% if item.is_reviewed %}reviewed{% endif %}" id="item-{{ item.pk }}"
+     style="padding:.5rem .7rem; margin-bottom:.35rem; {% if item.is_reviewed %}opacity:.62{% endif %}">
+  <div style="display:flex; justify-content:space-between; gap:.6rem; align-items:baseline">
+    <div style="min-width:0">
+      <span class="mono" style="font-weight:700; font-size:.74rem; color:var(--accent)">{{ item.oz }}</span>
       <span class="small">{{ item.short_text }}</span>
-      <span class="badge bg-light text-dark mono">{{ item.menge|floatformat:"-2" }} {{ item.einheit }}</span>
-      {% if item.confidence < 0.9 %}<span class="confidence-low small" title="{{ item.notes }}">⚠ {{ item.confidence }}</span>{% endif %}
-      {% if item.din276_group %}<span class="badge bg-dark">KG {{ item.din276_group }}</span>{% endif %}
-      {% if item.is_reviewed %}<span class="badge bg-success">✓</span>{% endif %}
+      <span class="pill zinc mono" style="font-size:.66rem">{{ item.menge|floatformat:"-2" }} {{ item.einheit }}</span>
+      {% if item.confidence < 0.9 %}<span style="color:var(--bad); font-size:.72rem; font-weight:600" title="{{ item.notes }}">⚠ {{ item.confidence }}</span>{% endif %}
+      {% if item.din276_group %}<span class="pill blue" style="font-size:.62rem">KG {{ item.din276_group }}</span>{% endif %}
+      {% if item.is_reviewed %}<span class="pill green" style="font-size:.62rem">✓</span>{% endif %}
     </div>
-    <div class="btn-group btn-group-sm">
+    <div style="display:flex; gap:.3rem; flex-shrink:0">
       {% if item.page_start %}
-      <button class="btn btn-outline-secondary" title="Quelle anzeigen"
+      <button class="btn sm mono" title="Quelle anzeigen (Seite {{ item.page_start }})"
               onclick="document.getElementById('pdf-frame').src='{% url 'projects:document_file' item.section.lv.document.pk %}#page={{ item.page_start }}'">p{{ item.page_start }}</button>
       {% endif %}
-      <button class="btn btn-outline-primary"
-              hx-get="{% url 'extraction:item_edit' item.pk %}" hx-target="#item-{{ item.pk }}" hx-swap="outerHTML">Edit</button>
-      <button class="btn btn-outline-success"
-              hx-post="{% url 'extraction:item_toggle_reviewed' item.pk %}" hx-target="#item-{{ item.pk }}" hx-swap="outerHTML"
+      <button class="btn sm" hx-get="{% url 'extraction:item_edit' item.pk %}" hx-target="#item-{{ item.pk }}" hx-swap="outerHTML">Edit</button>
+      <button class="btn sm success" hx-post="{% url 'extraction:item_toggle_reviewed' item.pk %}" hx-target="#item-{{ item.pk }}" hx-swap="outerHTML"
               hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>✓</button>
     </div>
   </div>
-  <details class="mt-1"><summary class="small text-muted">Langtext</summary><div class="long-text">{{ item.long_text }}</div></details>
+  <details style="margin-top:.3rem"><summary class="small muted" style="cursor:pointer">Langtext</summary>
+    <div class="small muted mono" style="white-space:pre-wrap; font-size:.72rem; margin-top:.3rem">{{ item.long_text }}</div>
+  </details>
 </div>

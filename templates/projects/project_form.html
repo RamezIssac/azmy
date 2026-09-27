@@ -1,22 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Neues Projekt{% endblock %}
 {% block content %}
-<h1 class="h4 mb-3">Neues Projekt</h1>
-<form method="post" class="card card-body" style="max-width: 640px;">
+<h1 style="font-size:1.25rem; margin-bottom:1rem">Neues Projekt</h1>
+<form method="post" class="card" style="max-width:620px">
   {% csrf_token %}
-  <div class="mb-3">
-    <label class="form-label">Projektname *</label>
-    <input class="form-control" name="name" required
-           placeholder="Neubau von 6 MFH mit 160 Wohneinheiten, Franz-Mehring-Platz 6">
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Adresse / Baustelle</label>
-    <input class="form-control" name="address">
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Bauherr / Auftraggeber</label>
-    <input class="form-control" name="client_name">
-  </div>
-  <button class="btn btn-primary">Anlegen &amp; Dokumente hochladen</button>
+  <label class="fl">Projektname *</label>
+  <input type="text" name="name" required placeholder="Neubau von 6 MFH mit 160 Wohneinheiten, Franz-Mehring-Platz 6">
+  <label class="fl">Adresse / Baustelle</label>
+  <input type="text" name="address">
+  <label class="fl">Bauherr / Auftraggeber</label>
+  <input type="text" name="client_name">
+  <div style="margin-top:1rem"><button class="btn primary">Anlegen &amp; Dokumente hochladen</button></div>
 </form>
 {% endblock %}

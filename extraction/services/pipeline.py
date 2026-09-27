@@ -57,6 +57,20 @@ def persist_parsed_lv(document: Document, parsed: ParsedLV, source: str) -> LV:
     return lv
 
 
+def classify_document(content, filename: str) -> str:
+    """Auto-triage: decide the doc type from filename hints + text content."""
+    name = filename.lower()
+    if name.endswith((".x83", ".x31", ".xml")):
+        return Document.DocType.GAEB
+    if content.positions_pages:
+        return Document.DocType.LV
+    if any(k in name for k in ("grundriss", "schnitt", "plan", "zeichnung", "ansicht")):
+        return Document.DocType.PLAN
+    if content.text_coverage > 0:
+        return Document.DocType.SPEC
+    return Document.DocType.PLAN  # no text at all: most likely drawings
+
+
 def extract_document(document: Document) -> Document:
     """Full extraction flow for one document. Never raises — status reflects outcome."""
     from . import llm  # deferred: keeps parser usable without settings/httpx
@@ -70,53 +84,55 @@ def extract_document(document: Document) -> Document:
             from .gaeb_import import import_gaeb
 
             import_gaeb(document)
-        elif document.doc_type == Document.DocType.LV:
+        else:
             content = read_pdf(document.file.path)
             document.page_count = content.page_count
             document.text_layer_ok = content.text_layer_ok
-            if not content.positions_pages:
-                reason = (
-                    "no usable text layer (scan?)"
-                    if content.text_coverage == 0
-                    else "no LV position table detected (not an LV?)"
-                )
-                document.status = Document.Status.MANUAL_QUEUE
-                document.extraction_report = {
-                    "reason": reason,
-                    "text_coverage": round(content.text_coverage, 3),
-                }
-                document.save()
-                return document
-            parsed = parse_lv_pages(content.pages)
-            lv = persist_parsed_lv(document, parsed, source=LVItem.Source.PDF)
-            document.extraction_report = parsed.report
-            # LLM: project metadata from cover/front matter (failure-tolerant)
-            meta = llm.extract_project_metadata(content.text_through(8))
+
+            # triage before OCR when text exists; after OCR when it doesn't
+            if document.doc_type == Document.DocType.AUTO and content.text_coverage > 0:
+                document.doc_type = classify_document(content, document.original_filename)
+                document.extraction_report["auto_classified_as"] = document.doc_type
+                document.save(update_fields=["doc_type", "extraction_report", "updated_at"])
+
+            if document.doc_type == Document.DocType.GAEB:
+                from .gaeb_import import import_gaeb
+
+                import_gaeb(document)
+            else:
+                if content.text_coverage == 0:
+                    content = _ensure_text(document, content)
+                    if content is None:
+                        return document  # manual queue already set
+                    if document.doc_type == Document.DocType.AUTO:
+                        document.doc_type = classify_document(
+                            content, document.original_filename
+                        )
+                        document.extraction_report["auto_classified_as"] = document.doc_type
+                        document.save(
+                            update_fields=["doc_type", "extraction_report", "updated_at"]
+                        )
+                if document.doc_type == Document.DocType.LV:
+                    _extract_lv(document, content)
+                    if document.status != Document.Status.PROCESSING:
+                        return document  # routed to manual queue inside
+                else:
+                    _extract_narrative(document, content)
+
+        lv = getattr(document, "lv", None)
+        if lv is not None:
+            meta = lv_extract_meta = None
+        if document.doc_type == Document.DocType.LV and hasattr(document, "lv"):
+            # LLM: project metadata + DIN 276 + judge (all failure-tolerant)
+            meta = llm.extract_project_metadata(read_pdf(document.file.path).text_through(8))
             if meta:
                 _apply_metadata(document, meta)
-            din = llm.suggest_din276(lv)
+            din = llm.suggest_din276(document.lv)
             if din:
-                lv.din276_group = din
-                lv.save(update_fields=["din276_group"])
-        else:
-            # plans/specs/notices/other: stored for later RAG. If there is a
-            # text layer, let the LLM identify and summarize the document.
-            content = read_pdf(document.file.path)
-            document.page_count = content.page_count
-            document.text_layer_ok = content.text_layer_ok
-            if content.text_coverage == 0:
-                document.status = Document.Status.MANUAL_QUEUE
-                document.extraction_report = {"reason": "no usable text layer (scan?)"}
-                document.save()
-                return document
-            intel = llm.summarize_document(content.text_through(6))
-            if intel:
-                document.extraction_report["document_intel"] = intel
-            document.status = Document.Status.EXTRACTED
-            document.save()
-            return document
+                document.lv.din276_group = din
+                document.lv.save(update_fields=["din276_group"])
 
-        if document.run_judge:
+        if document.run_judge and hasattr(document, "lv"):
             try:
                 judge_notes = llm.judge_extraction(document)
             except Exception as exc:  # noqa: BLE001 — judge is advisory only
@@ -131,6 +147,74 @@ def extract_document(document: Document) -> Document:
         document.error_message = f"{type(exc).__name__}: {exc}"
         document.save()
     return document
+
+
+def _ensure_text(document: Document, content):
+    """OCR fallback when the text layer is empty. None → manual queue set."""
+    from django.conf import settings
+
+    if content.text_coverage > 0:
+        return content
+    max_pages = getattr(settings, "OPENROUTER_OCR_MAX_PAGES", 80)
+    if content.page_count > max_pages:
+        document.status = Document.Status.MANUAL_QUEUE
+        document.extraction_report = {
+            "reason": f"scan with {content.page_count} pages > OCR limit {max_pages}",
+        }
+        document.save()
+        return None
+    from .ocr import ocr_document
+
+    ocr_content = ocr_document(document)
+    if ocr_content.text_coverage == 0:
+        document.status = Document.Status.MANUAL_QUEUE
+        document.extraction_report = {"reason": "OCR produced no text"}
+        document.save()
+        return None
+    document.extraction_report["ocr"] = True
+    document.save(update_fields=["extraction_report", "updated_at"])
+    return ocr_content
+
+
+def _extract_lv(document: Document, content):
+    parsed = parse_lv_pages(content.pages)
+    if not parsed.items:
+        document.status = Document.Status.MANUAL_QUEUE
+        document.extraction_report = {
+            "reason": "no LV position table detected (not an LV?)",
+            "text_coverage": round(content.text_coverage, 3),
+        }
+        document.save()
+        return
+    lv = persist_parsed_lv(document, parsed, source=LVItem.Source.PDF)
+    document.extraction_report.update(parsed.report)
+    document.save(update_fields=["extraction_report", "updated_at"])
+
+
+def _extract_narrative(document: Document, content):
+    from . import llm
+
+    intel = llm.summarize_document(content.text_through(6))
+    if intel:
+        document.extraction_report["document_intel"] = intel
+        _apply_procedure_facts(document, intel)
+    document.save(update_fields=["extraction_report", "updated_at"])
+
+
+def _apply_procedure_facts(document: Document, intel: dict):
+    """EOI/notice deadlines land on the project (empty fields only)."""
+    from datetime import datetime
+
+    facts = intel.get("key_facts") or {}
+    project = document.document_set.project
+    raw = (facts.get("procedure_deadline") or "").strip()
+    if raw and not project.bid_deadline:
+        try:
+            dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+            project.bid_deadline = dt
+            project.save(update_fields=["bid_deadline", "updated_at"])
+        except ValueError:
+            pass
 
 
 def _apply_metadata(document: Document, meta: dict):

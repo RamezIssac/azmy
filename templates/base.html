@@ -3,36 +3,116 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}azmy — bau_match{% endblock %}</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>{% block title %}azmy{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   <style>
-    body { background: #f5f6f8; }
-    .confidence-low { color: #b91c1c; font-weight: 600; }
-    .item-row.reviewed { opacity: .65; }
-    .item-row .long-text { white-space: pre-wrap; font-size: .85rem; color: #555; }
-    .section-header { background: #e9edf2; }
-    .mono { font-family: ui-monospace, monospace; }
+    :root {
+      --paper:#fafaf9; --surface:#fff; --ink:#111827; --ink-2:#4b5563; --ink-3:#9ca3af;
+      --hairline:#e7e5e4; --accent:#4f46e5; --accent-soft:#eef2ff;
+      --agent-from:#4f46e5; --agent-to:#06b6d4;
+      --ok:#059669; --warn:#d97706; --bad:#dc2626;
+      --dark:#0b1220; --dark-2:#111a2e; --dark-line:#1e2b45;
+      --mono:"JetBrains Mono",ui-monospace,monospace; --sans:"Inter",system-ui,sans-serif;
+      --r-lg:14px; --r-md:10px; --r-sm:7px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 var(--sans)}
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{max-width:1240px;margin:0 auto;padding:1.4rem 1.2rem 4rem}
+    /* nav */
+    .nav{display:flex;align-items:center;gap:1rem;padding:.8rem 1.2rem;background:var(--surface);
+         border-bottom:1px solid var(--hairline);position:sticky;top:0;z-index:50}
+    .wordmark{font:700 1.05rem var(--mono);color:var(--ink);text-decoration:none}
+    .wordmark:hover{text-decoration:none}
+    .wordmark .cur{color:var(--accent);animation:blink 1.4s steps(1) infinite}
+    @keyframes blink{50%{opacity:0}}
+    .nav .spacer{flex:1}
+    .nav a.nl{color:var(--ink-2);font-size:.85rem;font-weight:500}
+    .nav small{color:var(--ink-3);font-size:.75rem}
+    /* cards */
+    .card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);
+          padding:1rem 1.1rem;margin-bottom:.9rem}
+    .card.flat{box-shadow:none}
+    /* pills */
+    .pill{display:inline-flex;align-items:center;gap:.4rem;font:600 .7rem/1 var(--sans);
+          padding:.42rem .7rem;border-radius:999px;white-space:nowrap}
+    .pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+    .pill.zinc{background:#f4f4f5;color:#52525b}
+    .pill.amber{background:#fffbeb;color:var(--warn)}
+    .pill.blue{background:var(--accent-soft);color:var(--accent)}
+    .pill.green{background:#ecfdf5;color:var(--ok)}
+    .pill.red{background:#fef2f2;color:var(--bad)}
+    .pill.agent{background:linear-gradient(90deg,var(--agent-from),var(--agent-to));color:#fff}
+    /* buttons */
+    .btn{display:inline-block;font:600 .8rem var(--sans);border-radius:var(--r-sm);
+         padding:.5rem .95rem;border:1px solid var(--hairline);background:var(--surface);
+         color:var(--ink);cursor:pointer;text-decoration:none}
+    .btn:hover{border-color:var(--ink-3);text-decoration:none}
+    .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+    .btn.success{background:var(--ok);border-color:var(--ok);color:#fff}
+    .btn.hazard{background:repeating-linear-gradient(-45deg,#111827 0 8px,#1f2937 8px 16px);
+                color:#fbbf24;border-color:#111827;font-family:var(--mono);letter-spacing:.05em}
+    .btn.sm{padding:.3rem .6rem;font-size:.72rem}
+    /* pipeline */
+    .pipeline{display:flex;gap:4px;align-items:center;margin-top:.5rem}
+    .pipeline .step{flex:1;height:5px;border-radius:3px;background:#e5e7eb}
+    .pipeline .step.done{background:var(--ok)}
+    .pipeline .step.now{background:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+    .plabels{display:flex;justify-content:space-between;font:.6rem var(--mono);color:var(--ink-3);margin-top:.25rem}
+    /* tables */
+    table.tbl{width:100%;border-collapse:collapse;font-size:.84rem}
+    .tbl th{font:600 .66rem var(--mono);text-transform:uppercase;letter-spacing:.07em;
+            color:var(--ink-3);text-align:left;padding:.45rem .6rem;border-bottom:1px solid var(--hairline)}
+    .tbl td{padding:.5rem .6rem;border-bottom:1px solid var(--hairline);vertical-align:middle}
+    .mono{font-family:var(--mono);font-feature-settings:"tnum"}
+    .muted{color:var(--ink-3)}
+    .small{font-size:.8rem}
+    /* forms */
+    input[type=text],input[type=email],input[type=password],input[type=number],select,textarea{
+      font:inherit;padding:.45rem .6rem;border:1px solid var(--hairline);border-radius:var(--r-sm);
+      background:var(--surface);color:var(--ink);width:100%}
+    input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+    label.fl{display:block;font:600 .68rem var(--mono);text-transform:uppercase;letter-spacing:.08em;
+             color:var(--ink-3);margin:.6rem 0 .2rem}
+    /* alerts */
+    .alert{padding:.6rem .9rem;border-radius:var(--r-sm);margin-bottom:.6rem;font-size:.85rem;
+           border:1px solid var(--hairline);background:var(--surface)}
+    .alert.success{background:#ecfdf5;border-color:#a7f3d0;color:#065f46}
+    .alert.error{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+    .alert.info{background:var(--accent-soft);border-color:#c7d2fe;color:#3730a3}
+    /* agent console (quiet until real traffic) */
+    .console{background:var(--dark);color:#cbd5e1;border-radius:var(--r-md);padding:.9rem 1rem;
+             font:.72rem/1.8 var(--mono)}
+    .console .h{color:#7dd3fc;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.66rem;margin-bottom:.35rem}
+    .console .dim{color:#475569}
+    .console .g{background:linear-gradient(90deg,var(--agent-from),var(--agent-to));
+                -webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700}
+    /* blueprint texture for hero surfaces */
+    .blueprint{background-image:linear-gradient(rgba(79,70,229,.05) 1px,transparent 1px),
+               linear-gradient(90deg,rgba(79,70,229,.05) 1px,transparent 1px);background-size:28px 28px}
+    {% block extra_css %}{% endblock %}
   </style>
-  {% block extra_head %}{% endblock %}
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="/">azmy <span class="text-muted">bau_match</span></a>
-    {% if user.is_authenticated %}
-    <div class="d-flex text-light align-items-center gap-3">
-      <small>{{ user.email }}</small>
-      <a class="btn btn-sm btn-outline-light" href="{% url 'admin:index' %}">Admin</a>
-      <a class="btn btn-sm btn-outline-light" href="{% url 'account_logout' %}">Logout</a>
-    </div>
-    {% endif %}
-  </div>
+<nav class="nav">
+  <a class="wordmark" href="/">azmy<span class="cur">_</span></a>
+  {% if user.is_authenticated %}
+    {% if user.is_staff %}<a class="nl" href="{% url 'projects:dashboard' %}">Projekte</a>{% endif %}
+    <a class="nl" href="{% url 'bidding:portal' %}">Portal</a>
+    <span class="spacer"></span>
+    <span class="pill zinc" title="Agent substrate kommt in Phase 3"><i class="dot" style="background:#9ca3af"></i>0 agents · phase 3</span>
+    <small>{{ user.email }}</small>
+    {% if user.is_staff %}<a class="btn sm" href="{% url 'admin:index' %}">Admin</a>{% endif %}
+    <a class="btn sm" href="{% url 'account_logout' %}">Logout</a>
+  {% endif %}
 </nav>
-<div class="container-fluid">
+<div class="wrap">
   {% if messages %}
     {% for message in messages %}
-      <div class="alert alert-{{ message.tags|default:'info' }} py-2">{{ message }}</div>
+      <div class="alert {{ message.tags|default:'info' }}">{{ message }}</div>
     {% endfor %}
   {% endif %}
   {% block content %}{% endblock %}

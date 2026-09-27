@@ -1,26 +1,26 @@
-<div class="mb-2">
-  <div class="section-header rounded px-2 py-1 fw-bold small">
-    <span class="mono">{{ section.number }}</span> {{ section.title }}
+<div style="margin-bottom:.5rem">
+  <div style="background:#f4f4f5; border-radius:var(--r-sm); padding:.3rem .55rem; font-weight:600; font-size:.78rem">
+    <span class="mono" style="color:var(--accent)">{{ section.number }}</span> {{ section.title }}
   </div>
-  <table class="table table-sm mb-1">
+  <table class="tbl">
     <tbody>
       {% for item in section.items %}
       <tr>
-        <td class="mono small text-nowrap" style="width: 8rem;">{{ item.oz }}</td>
+        <td class="mono small" style="width:7.5rem; white-space:nowrap; color:var(--accent); font-weight:600">{{ item.oz }}</td>
         <td>
-          <div class="small fw-bold">{{ item.short_text }}</div>
-          <details><summary class="small text-muted">Langtext</summary>
-            <div class="long-text">{{ item.long_text|linebreaksbr }}</div>
+          <div class="small" style="font-weight:600">{{ item.short_text }}</div>
+          <details><summary class="small muted" style="cursor:pointer">Langtext</summary>
+            <div class="small muted" style="white-space:pre-wrap">{{ item.long_text }}</div>
           </details>
         </td>
-        <td class="text-end text-nowrap small" style="width: 8rem;">
+        <td class="mono small" style="text-align:right; white-space:nowrap; width:8rem">
           {{ item.menge|floatformat:"-2" }} {{ item.einheit }}
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
-  <div class="ms-3">
+  <div style="margin-left:.9rem">
     {% for child in section.sections %}
       {% include "projects/_public_section.html" with section=child %}
     {% endfor %}

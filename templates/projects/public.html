@@ -1,30 +1,38 @@
 {% extends "base.html" %}
 {% block title %}{{ project.name }} — Ausschreibung{% endblock %}
 {% block content %}
-<div class="container" style="max-width: 960px;">
-  <h1 class="h4">{{ project.name }}</h1>
-  <p class="text-muted small">
-    {{ project.client_name }} · {{ project.address }}
-    {% if project.bid_deadline %} · <strong>Angebotsfrist: {{ project.bid_deadline|date:"d.m.Y H:i" }}</strong>{% endif %}
-    {% if project.execution_period %} · Ausführung: {{ project.execution_period }}{% endif %}
-  </p>
+<div style="max-width:900px; margin:0 auto">
+  <div class="card blueprint">
+    <h1 style="font-size:1.3rem; margin:0 0 .4rem">{{ project.name }}</h1>
+    <div style="display:flex; flex-wrap:wrap; gap:.45rem; margin-bottom:.3rem">
+      {% if project.address %}<span class="pill zinc">{{ project.address }}</span>{% endif %}
+      {% if project.client_name %}<span class="pill zinc">{{ project.client_name }}</span>{% endif %}
+      {% if project.bid_deadline %}<span class="pill amber"><i class="dot"></i>Angebotsfrist {{ project.bid_deadline|date:"d.m.Y H:i" }}</span>{% endif %}
+      {% if project.execution_period %}<span class="pill zinc">Ausführung: {{ project.execution_period }}</span>{% endif %}
+    </div>
+  </div>
 
   {% for lv in lvs %}
-  <div class="card mb-3">
-    <div class="card-header">
+  <div class="card flat" style="padding:0; overflow:hidden">
+    <div style="padding:.7rem 1rem; border-bottom:1px solid var(--hairline); background:#fbfbfa">
       <strong>LV {{ lv.number }} — {{ lv.gewerk }}</strong>
-      {% if lv.din276_group %}<span class="badge bg-dark">DIN 276 KG {{ lv.din276_group }}</span>{% endif %}
+      {% if lv.din276_group %}<span class="pill blue" style="margin-left:.4rem">KG {{ lv.din276_group }}</span>{% endif %}
     </div>
-    <div class="card-body">
+    <div style="padding:.6rem 1rem">
       {% for section in lv.sections %}
         {% include "projects/_public_section.html" with section=section %}
       {% endfor %}
     </div>
   </div>
   {% empty %}
-  <div class="alert alert-info">Noch keine freigegebenen Leistungsverzeichnisse.</div>
+  <div class="card"><span class="muted">Noch keine freigegebenen Leistungsverzeichnisse.</span></div>
   {% endfor %}
 
-  <p class="small text-muted">Maschinenlesbare Fassung: <code>/api/v1/p/{{ project.public_token }}/</code></p>
+  <div class="console" style="margin-top:1rem">
+    <div class="h">For agents</div>
+    <span class="dim"># Maschinenlesbare Fassung dieser Ausschreibung</span><br>
+    GET <a href="{% url 'projects:public_api' project.public_token %}" style="color:#7dd3fc">/api/v1/p/{{ project.public_token }}/</a> → JSON<br>
+    <span class="dim"># MCP + bid submission by agent: phase 3 ·</span> <span class="g">azmy.raenterprises.de/mcp</span>
+  </div>
 </div>
 {% endblock %}

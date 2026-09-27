@@ -42,46 +42,52 @@ def parse_json_content(content: str) -> dict | None:
 
 
 def chat(model: str, messages: list[dict], json_mode: bool = True) -> dict | None:
+    """Call OpenRouter. `model` may be a comma-separated fallback chain
+    (free tier first, paid backstop) — each model gets up to 3 attempts
+    with backoff on 429s; total failure degrades to None, never raises."""
     if not settings.OPENROUTER_API_KEY:
         logger.info("OPENROUTER_API_KEY not set — skipping LLM step")
         return None
-    payload: dict = {"model": model, "messages": messages, "temperature": 0}
-    if json_mode:
-        payload["response_format"] = {"type": "json_object"}
     import time
 
-    try:
-        resp = None
+    for current in [m.strip() for m in model.split(",") if m.strip()]:
+        payload: dict = {"model": current, "messages": messages, "temperature": 0}
+        if json_mode:
+            payload["response_format"] = {"type": "json_object"}
         for attempt in (1, 2, 3):
-            resp = httpx.post(
-                f"{settings.OPENROUTER_BASE_URL}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
-                    "HTTP-Referer": "https://azmy.raenterprises.de",
-                    "X-Title": "azmy bau_match",
-                },
-                json=payload,
-                timeout=TIMEOUT,
-            )
-            if resp.status_code == 429 and attempt < 3:
-                wait = 15 * attempt  # free tier is throttled; back off and retry
-                logger.info("rate-limited (429) on %s — retry %d in %ds", model, attempt, wait)
-                time.sleep(wait)
-                continue
-            resp.raise_for_status()
-            break
-        content = resp.json()["choices"][0]["message"]["content"]
-        if not json_mode:
-            return {"text": content}
-        parsed = parse_json_content(content)
-        if parsed is None:
-            logger.warning(
-                "LLM (%s) returned non-JSON content: %r", model, content[:200]
-            )
-        return parsed
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("OpenRouter call failed (%s): %s", model, exc)
-        return None
+            try:
+                resp = httpx.post(
+                    f"{settings.OPENROUTER_BASE_URL}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+                        "HTTP-Referer": "https://azmy.raenterprises.de",
+                        "X-Title": "azmy bau_match",
+                    },
+                    json=payload,
+                    timeout=TIMEOUT,
+                )
+            except Exception as exc:  # noqa: BLE001 — network/timeout
+                logger.warning("OpenRouter %s attempt %d failed: %s", current, attempt, exc)
+                resp = None
+                break  # next model
+            if resp.status_code == 429:
+                if attempt < 3:
+                    wait = 15 * attempt
+                    logger.info("429 on %s — retry %d in %ds", current, attempt, wait)
+                    time.sleep(wait)
+                    continue
+                break  # rate-limited out — next model
+            if resp.status_code != 200:
+                logger.warning("OpenRouter %s HTTP %d: %s", current, resp.status_code, resp.text[:150])
+                break  # next model
+            content = resp.json()["choices"][0]["message"]["content"]
+            if not json_mode:
+                return {"text": content}
+            parsed = parse_json_content(content)
+            if parsed is None:
+                logger.warning("LLM (%s) returned non-JSON content: %r", current, content[:200])
+            return parsed
+    return None
 
 
 def extract_project_metadata(front_text: str) -> dict:
@@ -158,7 +164,9 @@ def summarize_document(front_text: str) -> dict:
                     "mit exakt diesen Schlüsseln: document_kind (z.B. "
                     "Interessenbekundungsverfahren, Energieausweis, Brandschutzbericht, "
                     "Grundrisse, Baubeschreibung, Sonstiges), title, summary (2-3 Sätze), "
-                    "key_facts: {deadlines: [Strings], contact: String, scope: String}."
+                    "key_facts: {deadlines: [Strings], contact: String, scope: String, "
+                    "procedure_deadline: String (ISO-Datum YYYY-MM-DD, falls eine "
+                    "Angebots-/Bewerbungsfrist genannt wird, sonst leer)}."
                 ),
             },
             {"role": "user", "content": front_text[:12000]},

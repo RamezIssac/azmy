@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Bietervergleich — {{ project.name }}{% endblock %}
+{% block content %}
+<a href="{% url 'projects:detail' project.slug %}" class="small muted">&larr; {{ project.name }}</a>
+<h1 style="font-size:1.25rem; margin:.2rem 0 1rem">Bietervergleich</h1>
+
+{% if not bids %}
+<div class="card"><span class="muted">Noch keine abgegebenen Angebote.</span></div>
+{% else %}
+
+<div class="card">
+  <div style="display:flex; gap:1.4rem; flex-wrap:wrap" class="small">
+    {% for bid in bids %}
+    <div>
+      <strong>{{ bid.provider.company }}</strong><br>
+      <span class="mono muted">{{ bid.priced_count }} Positionen ·
+        {% if bid.total %}Σ {{ bid.total|floatformat:2 }} €{% else %}Σ —{% endif %}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% for section in sections %}
+<div class="card flat" style="padding:0; overflow:hidden">
+  <div style="padding:.5rem 1rem; border-bottom:1px solid var(--hairline); background:#fbfbfa" class="small">
+    <strong>{{ section.title }}</strong>
+  </div>
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th>OZ</th><th>Position</th><th style="text-align:right">Menge</th>
+        {% for bid in bids %}<th style="text-align:right">{{ bid.provider.company }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in section.rows %}
+      <tr>
+        <td class="mono small" style="color:var(--accent); font-weight:600; white-space:nowrap">{{ row.item.oz }}</td>
+        <td class="small">{{ row.item.short_text }}</td>
+        <td class="mono small muted" style="text-align:right; white-space:nowrap">{{ row.item.menge|floatformat:"-2" }} {{ row.item.einheit }}</td>
+        {% for bid in bids %}
+        <td class="mono small" style="text-align:right; white-space:nowrap;
+            {% if bid.pk in row.gap_bids %}background:#fef2f2{% endif %}">
+          {% if bid.pk in row.gap_bids %}
+            <span style="color:var(--bad)" title="nicht bepreist">—</span>
+          {% else %}
+            {% for bid_id, price in row.prices.items %}{% if bid_id == bid.pk %}
+              {% if price == row.low and row.low != row.high %}<strong style="color:var(--ok)">{{ price|floatformat:2 }}</strong>
+              {% elif price == row.high and row.spread_pct > 25 %}<span style="color:var(--bad)" title="{{ row.spread_pct|floatformat:0 }}% über Minimum">{{ price|floatformat:2 }}</span>
+              {% else %}{{ price|floatformat:2 }}{% endif %}
+            {% endif %}{% endfor %}
+          {% endif %}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
+{% endif %}
+{% endblock %}

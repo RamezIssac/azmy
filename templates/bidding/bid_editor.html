@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Angebot — {{ project.name }}{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:1rem">
+  <div>
+    <a href="{% url 'bidding:portal' %}" class="small muted">&larr; Portal</a>
+    <h1 style="font-size:1.25rem; margin:.2rem 0">Angebot: {{ project.name }}</h1>
+    <div class="muted small">EP je Position in EUR (Netto). Leer = nicht angeboten. Kommaschreibweise ok.</div>
+  </div>
+  <a class="btn" href="{{ project.get_public_url }}" target="_blank">LV ansehen ↗</a>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  {% for lv in lv_trees %}
+  <div class="card flat" style="padding:0; overflow:hidden">
+    <div style="padding:.6rem 1rem; border-bottom:1px solid var(--hairline); background:#fbfbfa">
+      <strong>LV {{ lv.lv.number }} — {{ lv.lv.gewerk }}</strong>
+    </div>
+    <div style="padding:.6rem 1rem">
+      {% for section in lv.sections %}
+        {% include "bidding/_bid_section.html" with section=section %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="card">
+    <label class="fl">Bemerkung zum Angebot</label>
+    <textarea name="bid_note" rows="3">{{ bid.note }}</textarea>
+    <div style="display:flex; gap:.6rem; margin-top:.8rem">
+      <button class="btn" type="submit" name="save" value="1">Entwurf speichern</button>
+      <button class="btn hazard" type="submit" name="submit" value="1"
+              onclick="return confirm('Angebot endgültig abgeben?')">ANGEBOT ABGEBEN ▸</button>
+    </div>
+  </div>
+</form>
+{% endblock %}
