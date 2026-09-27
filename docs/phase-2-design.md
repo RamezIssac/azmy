@@ -1,6 +1,8 @@
 # Phase 2 Design — multi-document intelligence + web bidding
 
-Status: **scope locked** (2026-09-27). Builds on `phase-1-design.md`.
+Status: **2A + 2C BUILT AND DEPLOYED** (2026-09-27, azmy.raenterprises.de).
+Remaining open item: publish gate requires an approved LV — document-only projects
+(EOI phase) can't be published yet (product decision pending).
 
 **Scope decision (Ramez, 2026-09-27): Phase 2 = 2A + 2C (web only).**
 The agent substrate (2B: MCP server, API keys, webhooks) moves to Phase 3.
@@ -66,8 +68,9 @@ provider reputation, GC portal monitoring, payments.
 
 ## LLM routing (decided 2026-09-27)
 
-Free-tier models at the moment; **per-task routing** via env — upgrade any task
-independently in production without a code change:
+**Fallback chains**, free tier first, paid backstop (comma-separated per setting).
+Free tier 429s under shared load (observed live) — chain keeps the pipeline alive;
+429s retried with backoff inside each model. Upgrade any task via env, no code change.
 
 | Setting | Task | Default (free tier) |
 |---|---|---|
