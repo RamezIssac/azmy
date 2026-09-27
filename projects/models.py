@@ -33,6 +33,10 @@ class Project(models.Model):
         _("submission place (Abgabeort)"), max_length=255, blank=True
     )
     notes = models.TextField(blank=True)
+    source_url = models.URLField(
+        _("source URL"), blank=True,
+        help_text=_("Where this tender was found (e.g. berlin.de notice page)"),
+    )
 
     public_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     is_published = models.BooleanField(default=False)

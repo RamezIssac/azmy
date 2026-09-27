@@ -12,7 +12,7 @@ class DocumentInline(admin.TabularInline):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ["name", "client_name", "is_published", "created_at"]
+    list_display = ["name", "client_name", "is_published", "source_url", "created_at"]
     list_filter = ["is_published"]
     search_fields = ["name", "client_name", "address"]
     readonly_fields = ["public_token", "published_at"]

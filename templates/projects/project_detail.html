@@ -7,6 +7,7 @@
     <h1 style="font-size:1.25rem; margin:0 0 .2rem">{{ project.name }}</h1>
     <div class="muted small">
       {{ project.client_name }} · {{ project.address }}
+      {% if project.source_url %} · <a href="{{ project.source_url }}" target="_blank">Quelle ↗</a>{% endif %}
       {% if project.bid_deadline %} · <strong style="color:var(--warn)">Angebotsfrist: {{ project.bid_deadline|date:"d.m.Y H:i" }}</strong>{% endif %}
     </div>
   </div>

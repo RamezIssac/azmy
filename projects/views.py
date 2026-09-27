@@ -51,6 +51,7 @@ def project_create(request):
             name=request.POST.get("name", "").strip() or "Unbenanntes Projekt",
             address=request.POST.get("address", "").strip(),
             client_name=request.POST.get("client_name", "").strip(),
+            source_url=request.POST.get("source_url", "").strip(),
             created_by=request.user,
         )
         messages.success(request, f"Projekt „{project.name}“ angelegt.")
@@ -221,6 +222,7 @@ def _public_payload(project: Project) -> dict:
         "architect": project.architect,
         "bid_deadline": project.bid_deadline.isoformat() if project.bid_deadline else None,
         "execution_period": project.execution_period,
+        "source_url": project.source_url,
         "lvs": _public_lv_tree(project),
     }
 
